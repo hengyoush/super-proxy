@@ -1,8 +1,9 @@
 package io.yhheng.superproxy.protocol;
 
-import io.yhheng.superproxy.model.DownstreamRequest;
+import io.netty.buffer.ByteBuf;
+import io.yhheng.superproxy.model.Request;
 import io.yhheng.superproxy.model.Packet;
 
 public interface Protocol {
-    DownstreamRequest decode(Packet packet);
+    Request decode(ByteBuf buf);
 }
