@@ -5,5 +5,5 @@ import io.yhheng.superproxy.model.Request;
 import io.yhheng.superproxy.model.Packet;
 
 public interface Protocol {
-    Request decode(ByteBuf buf);
+    Decoder getDecoder();
 }
