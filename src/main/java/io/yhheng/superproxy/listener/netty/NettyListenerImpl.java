@@ -29,6 +29,7 @@ public class NettyListenerImpl extends ListenerImpl {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline()
+                                // for heartbeat
                                 .addLast(new IdleStateHandler(0, 0, 3000))
                                 .addLast(new DecodeHandler(protocol));
                     }

@@ -9,6 +9,7 @@ import io.yhheng.superproxy.protocol.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static io.yhheng.superproxy.protocol.Decoder.DecodeStatus.COMPLETE;
@@ -35,6 +36,7 @@ public class DecodeHandler extends ByteToMessageDecoder {
             } else if (decodeResult.getDecodeStatus() == ERROR) {
                 log.error("decode downstream request failed!", decodeResult.getException());
             }
+            String[] strings = new ArrayList<String>().toArray(new String[0]);
             in.readerIndex(save);
             break;
         } while (true);
