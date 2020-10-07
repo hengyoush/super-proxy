@@ -5,11 +5,10 @@ import org.apache.dubbo.common.serialize.hessian2.Hessian2ObjectInput;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.yhheng.superproxy.io.Bytes;
-import io.yhheng.superproxy.model.Header;
-import io.yhheng.superproxy.model.Packet;
-import io.yhheng.superproxy.model.Request;
 import io.yhheng.superproxy.protocol.DecodeResult;
 import io.yhheng.superproxy.protocol.Decoder;
+import io.yhheng.superproxy.protocol.Frame;
+import io.yhheng.superproxy.stream.StreamType;
 
 import java.io.IOException;
 
@@ -43,24 +42,26 @@ public class DubboDecoder implements Decoder {
         }
 
         if (isRequest) {
+            // TODO close stream?
             Hessian2ObjectInput objectInput = new Hessian2ObjectInput(new ByteBufInputStream(byteBuf, len));
             int save = byteBuf.readerIndex();
             byte[] rawBody = new byte[len];
             byteBuf.readBytes(rawBody, 0, len);
             byteBuf.readerIndex(save);
-            Header h = new Header();
+            DubboHeader h = new DubboHeader();
             h.setFrameworkVersion(objectInput.readUTF());
 //            h.setGroup(); TODO handle group
             h.setServiceName(objectInput.readUTF());
             h.setVersion(objectInput.readUTF());
             h.setEvent(isEvent);
 
-            Request request = new Request();
-            request.setHeader(h);
-            request.setPacket(new Packet(header, rawBody));
+            Frame frame = new Frame();
+            frame.setData(byteBuf);
+            frame.setHeader(h);
             DecodeResult decodeResult = new DecodeResult();
             decodeResult.setDecodeStatus(DecodeStatus.COMPLETE);
-            decodeResult.setResult(request);
+            decodeResult.setFrame(frame);
+            decodeResult.setStreamType(StreamType.Request);
             return decodeResult;
         } else {
             // TODO decode response

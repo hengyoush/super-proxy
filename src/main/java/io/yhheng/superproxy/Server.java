@@ -1,6 +1,15 @@
 package io.yhheng.superproxy;
 
-public interface Server {
-    void startup();
-    void shutdown();
+import io.yhheng.superproxy.cluster.ClusterManager;
+import io.yhheng.superproxy.network.Listener;
+
+import java.util.List;
+
+public class Server {
+    private List<Listener> listeners;
+    private ClusterManager clusterManager;
+
+    public ClusterManager getClusterManager() {
+        return clusterManager;
+    }
 }

@@ -1,6 +1,8 @@
-package io.yhheng.superproxy.model;
+package io.yhheng.superproxy.protocol.dubbo;
 
-public class Header {
+import io.yhheng.superproxy.protocol.Header;
+
+public class DubboHeader implements Header {
     private String frameworkVersion;
     private String serviceName;
     private String group;
@@ -45,5 +47,16 @@ public class Header {
 
     public void setFrameworkVersion(String frameworkVersion) {
         this.frameworkVersion = frameworkVersion;
+    }
+
+    // TODO key in (...)
+    @Override
+    public Object get(String key) {
+        return null;
+    }
+
+    @Override
+    public boolean isHeartbeat() {
+        return isEvent;
     }
 }
