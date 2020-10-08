@@ -3,6 +3,7 @@ package io.yhheng.superproxy.proxy;
 import io.yhheng.superproxy.cluster.ClusterManager;
 import io.yhheng.superproxy.network.Connection;
 import io.yhheng.superproxy.protocol.Protocol;
+import io.yhheng.superproxy.stream.ActiveStreamManager;
 import io.yhheng.superproxy.stream.Downstream;
 import io.yhheng.superproxy.stream.ServerStreamConnection;
 
@@ -15,7 +16,7 @@ public class Proxy {
     private ClusterManager clusterManager;
     // serverStream
     private ServerStreamConnection serverStreamConnection;
-    private List<Downstream> activeStreams;
+    private ActiveStreamManager activeStreamManager;
 
     public void newServerStreamConnection(Connection serverConnection) {
 
@@ -45,9 +46,6 @@ public class Proxy {
         this.serverStreamConnection = serverStreamConnection;
     }
 
-    public void setActiveStreams(List<Downstream> activeStreams) {
-        this.activeStreams = activeStreams;
-    }
 
     public Connection getServerConnection() {
         return serverConnection;
@@ -65,7 +63,7 @@ public class Proxy {
         return clusterManager;
     }
 
-    public List<Downstream> getActiveStreams() {
-        return activeStreams;
+    public ActiveStreamManager getActiveStreamManager() {
+        return activeStreamManager;
     }
 }

@@ -7,6 +7,7 @@ import io.yhheng.superproxy.protocol.Decoder;
 import io.yhheng.superproxy.protocol.Frame;
 import io.yhheng.superproxy.protocol.Protocol;
 import io.yhheng.superproxy.proxy.Proxy;
+import io.yhheng.superproxy.proxy.UpstreamRequest;
 
 import java.io.IOException;
 
@@ -57,8 +58,16 @@ public class ServerStreamConnection {
         downstream.setServerConnection(connection);
         downstream.setFrame(frame);
         // TODO 提供一个单独的方法而不是使用getter
-        proxy.getActiveStreams().add(downstream);
+        proxy.getActiveStreamManager().addActiveStream(downstream);
         downstream.receiveRequest();
+        UpstreamRequest upstreamRequest = downstream.getUpstreamRequest();
+        Connection connection = proxy.getClusterManager().connForHost(downstream.getUpstreamHost());
+
+        // TODO 设置future 等待上游返回响应
+
+
+        ByteBuf byteBuf = protocol.getEncoder().encode(upstreamRequest.getFrame());
+        connection.write(byteBuf);
     }
     private void handleRequestOneWay(DecodeResult decodeResult) {}
     private void handleResponse(DecodeResult decodeResult) {}
