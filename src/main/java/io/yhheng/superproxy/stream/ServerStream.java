@@ -5,16 +5,16 @@ import io.yhheng.superproxy.cluster.ClusterManager;
 import io.yhheng.superproxy.cluster.Host;
 import io.yhheng.superproxy.network.Connection;
 import io.yhheng.superproxy.protocol.Frame;
-import io.yhheng.superproxy.proxy.UpstreamRequest;
 import io.yhheng.superproxy.proxy.route.Route;
 import io.yhheng.superproxy.proxy.route.Routers;
 
-public class Downstream {
+public class ServerStream implements StreamReceiveListener {
     private Long id;
     private Connection serverConnection;
     private Frame frame;
     private Routers routers;
     private ClusterManager clusterManager;
+    private ActiveStreamManager activeStreamManager;
 
     // set in processing
     private Cluster upstreamCluster;
@@ -49,7 +49,8 @@ public class Downstream {
         return upstreamHost;
     }
 
-    public void receiveRequest() {
+    @Override
+    public void onReceive(Frame frame) {
         // TODO 可以用一个线程池
 
         // match route(select cluster)
@@ -58,8 +59,14 @@ public class Downstream {
         // choose host(in-cluster load balance
         chooseHost();
 
-        // create upstream request
-        createUpstreamRequest();
+        // create new client stream
+        createClientStream();
+
+    }
+
+    @Override
+    public void onDecodeError(Frame frame) {
+
     }
 
     public void receiveResponse(Frame frame) {
@@ -78,12 +85,17 @@ public class Downstream {
 
     private void chooseHost() {
         this.upstreamHost = upstreamCluster.selectHost();
+        Connection connection = clusterManager.initialzeConnectionForHost(upstreamHost);
     }
 
-    private void createUpstreamRequest() {
+    private void createClientStream() {
         this.upstreamRequest = new UpstreamRequest();
         upstreamRequest.setFrame(frame);
         upstreamRequest.setHost(upstreamHost);
+        ClientStream clientStream = new ClientStream();
+        clientStream.setStreamSender(null);
+        clientStream.setUpstreamRequest(upstreamRequest);
+        clientStream.appendHeaders(false);
+        clientStream.appendData(true);
     }
-
 }

@@ -7,15 +7,15 @@ import io.yhheng.superproxy.protocol.Decoder;
 import io.yhheng.superproxy.protocol.Frame;
 import io.yhheng.superproxy.protocol.Protocol;
 import io.yhheng.superproxy.proxy.Proxy;
-import io.yhheng.superproxy.proxy.UpstreamRequest;
 
 import java.io.IOException;
 
-public class ServerStreamConnection {
+public class ServerStreamConnection implements StreamConnection {
     private Protocol protocol;
     private Connection connection;
     private Proxy proxy;
 
+    @Override
     public void dispatch(ByteBuf byteBuf) {
         // 决定是request还是response
         try {
@@ -45,6 +45,11 @@ public class ServerStreamConnection {
         }
     }
 
+    @Override
+    public Protocol protocol() {
+        return protocol;
+    }
+
     private void handleRequest(DecodeResult decodeResult) {
         // 区分是心跳还是普通请求
         Frame frame = decodeResult.getFrame();
@@ -54,14 +59,14 @@ public class ServerStreamConnection {
         }
 
         // 创建downstream
-        Downstream downstream = new Downstream();
-        downstream.setServerConnection(connection);
-        downstream.setFrame(frame);
+        ServerStream serverStream = new ServerStream();
+        serverStream.setServerConnection(connection);
+        serverStream.setFrame(frame);
         // TODO 提供一个单独的方法而不是使用getter
-        proxy.getActiveStreamManager().addActiveStream(downstream);
-        downstream.receiveRequest();
-        UpstreamRequest upstreamRequest = downstream.getUpstreamRequest();
-        Connection connection = proxy.getClusterManager().connForHost(downstream.getUpstreamHost());
+        proxy.getActiveStreamManager().addActiveStream(serverStream);
+        serverStream.onReceive(frame);
+        UpstreamRequest upstreamRequest = serverStream.getUpstreamRequest();
+        Connection connection = proxy.getClusterManager().initialzeConnectionForHost(serverStream.getUpstreamHost());
 
         // TODO 设置future 等待上游返回响应
 

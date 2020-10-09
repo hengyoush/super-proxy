@@ -4,10 +4,7 @@ import io.yhheng.superproxy.cluster.ClusterManager;
 import io.yhheng.superproxy.network.Connection;
 import io.yhheng.superproxy.protocol.Protocol;
 import io.yhheng.superproxy.stream.ActiveStreamManager;
-import io.yhheng.superproxy.stream.Downstream;
 import io.yhheng.superproxy.stream.ServerStreamConnection;
-
-import java.util.List;
 
 public class Proxy {
     private Connection serverConnection;

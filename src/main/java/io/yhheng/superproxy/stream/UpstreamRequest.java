@@ -1,4 +1,4 @@
-package io.yhheng.superproxy.proxy;
+package io.yhheng.superproxy.stream;
 
 import io.yhheng.superproxy.cluster.Host;
 import io.yhheng.superproxy.protocol.Frame;

@@ -5,5 +5,5 @@ import io.yhheng.superproxy.network.ConnectionPool;
 
 public interface ClusterManager {
     Cluster getCluster(String name);
-    Connection connForHost(Host host);
+    Connection initialzeConnectionForHost(Host host);
 }
