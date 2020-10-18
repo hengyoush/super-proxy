@@ -7,6 +7,10 @@ import io.yhheng.superproxy.network.Connection;
 import io.yhheng.superproxy.protocol.Frame;
 import io.yhheng.superproxy.proxy.route.Route;
 import io.yhheng.superproxy.proxy.route.Routers;
+import io.yhheng.superproxy.proxy.filter.ProxyFilter;
+import io.yhheng.superproxy.proxy.filter.StreamFilterManager;
+
+import java.util.List;
 
 public class ServerStream implements StreamReceiveListener {
     private Long id;
@@ -15,11 +19,13 @@ public class ServerStream implements StreamReceiveListener {
     private Routers routers;
     private ClusterManager clusterManager;
     private ActiveStreamManager activeStreamManager;
+    private StreamFilterManager streamFilterManager;
 
     // set in processing
     private Cluster upstreamCluster;
     private Host upstreamHost;
     private UpstreamRequest upstreamRequest;
+    private ClientStream clientStream;
 
     public Connection getServerConnection() {
         return serverConnection;
@@ -53,15 +59,23 @@ public class ServerStream implements StreamReceiveListener {
     public void onReceive(Frame frame) {
         // TODO 可以用一个线程池
 
+        runFilters(StreamPhase.PreRoute);
+
         // match route(select cluster)
         matchRoute();
+
+        runFilters(StreamPhase.AfterRoute);
 
         // choose host(in-cluster load balance
         chooseHost();
 
+        runFilters(StreamPhase.AfterChooseHost);
+
         // create new client stream
         createClientStream();
 
+        // send request
+        sendRequest();
     }
 
     @Override
@@ -70,7 +84,24 @@ public class ServerStream implements StreamReceiveListener {
     }
 
     public void receiveResponse(Frame frame) {
+        // handle Frame
+        runFilters(frame, StreamPhase.UpstreamResponse);
+        serverConnection.write(frame.getRawBuf());
+    }
 
+    private void runFilters(StreamPhase phase) {
+        runFilters(frame, phase);
+    }
+
+    private void runFilters(Frame frame, StreamPhase phase) {
+        List<ProxyFilter> filters = streamFilterManager.getFilters(phase);
+        for (int i = 0; i < filters.size(); i++) {
+            ProxyFilter proxyFilter = filters.get(i);
+            ProxyFilter.FilterStatus filterStatus = proxyFilter.filter(frame);
+            if (filterStatus == ProxyFilter.FilterStatus.STOP) {
+                break;
+            }
+        }
     }
 
     private void matchRoute() {
@@ -92,10 +123,14 @@ public class ServerStream implements StreamReceiveListener {
         this.upstreamRequest = new UpstreamRequest();
         upstreamRequest.setFrame(frame);
         upstreamRequest.setHost(upstreamHost);
-        ClientStream clientStream = new ClientStream();
+        this.clientStream = new ClientStream();
         clientStream.setStreamSender(null);
         clientStream.setUpstreamRequest(upstreamRequest);
-        clientStream.appendHeaders(false);
-        clientStream.appendData(true);
+        activeStreamManager.addClientStream(clientStream);
+
+    }
+
+    private void sendRequest() {
+        clientStream.appendRequest(true);
     }
 }

@@ -4,4 +4,5 @@ public interface Header {
     Object get(String key);
     boolean isHeartbeat();
     String host();
+    Long getRequestId();
 }

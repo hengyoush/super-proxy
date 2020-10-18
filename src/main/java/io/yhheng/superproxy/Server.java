@@ -6,6 +6,7 @@ import io.yhheng.superproxy.network.Listener;
 import java.util.List;
 
 public class Server {
+    private String name;
     private List<Listener> listeners;
     private ClusterManager clusterManager;
 

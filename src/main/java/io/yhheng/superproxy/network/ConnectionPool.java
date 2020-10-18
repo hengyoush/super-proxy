@@ -1,4 +1,7 @@
 package io.yhheng.superproxy.network;
 
-public class ConnectionPool {
+import io.yhheng.superproxy.protocol.Header;
+
+public interface ConnectionPool {
+    Connection getConnection(Header header);
 }

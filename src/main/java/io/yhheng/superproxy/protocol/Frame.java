@@ -6,6 +6,7 @@ public class Frame {
     private Header header;
     private ByteBuf data;
     private ByteBuf rawBuf;
+    private Protocol protocol;
 
     public ByteBuf getData() {
         return data;
@@ -33,5 +34,13 @@ public class Frame {
 
     boolean isHeartBeat() {
         return header.isHeartbeat();
+    }
+
+    public Protocol getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(Protocol protocol) {
+        this.protocol = protocol;
     }
 }

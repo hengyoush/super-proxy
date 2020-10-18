@@ -6,15 +6,24 @@ import io.yhheng.superproxy.proxy.Proxy;
 import java.util.Map;
 
 public class ActiveStreamManager {
-    private Map<Long, ServerStream> activeStreamMap;
+    private Map<Long, ServerStream> activeServerStreamMap;
+    private Map<Long, ClientStream> activeClientStreamMap;
     private Connection connection;
     private Proxy proxy;
 
-    public void addActiveStream(ServerStream serverStream) {
+    public void addServerStream(ServerStream serverStream) {
 
     }
 
-    public ServerStream findMatchedStream(Long id) {
+    public void addClientStream(ClientStream clientStream) {
+
+    }
+
+    public ServerStream findMatchedServerStream(Long id) {
+        return null;
+    }
+
+    public ClientStream findMatchClientStream(Long streamId) {
         return null;
     }
 }

@@ -6,6 +6,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.yhheng.superproxy.Server;
 import io.yhheng.superproxy.protocol.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ public class NettyListenerImpl implements Listener {
     private static final Logger log = LoggerFactory.getLogger(NettyListenerImpl.class);
     private int port;
     private List<NetworkFilter> networkFilters;
+    private List<ListenerEventListener> listenerEventListeners;
     private Protocol protocol;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
@@ -33,6 +35,8 @@ public class NettyListenerImpl implements Listener {
                         ch.pipeline().addLast(new NetworkHandler(NettyListenerImpl.this));
                     }
                 });
+
+        listenerEventListeners.forEach(i -> i.onListenerStart(this));
     }
 
     public void shutdown() {
@@ -50,8 +54,18 @@ public class NettyListenerImpl implements Listener {
     }
 
     @Override
+    public List<ListenerEventListener> listenerEventListeners() {
+        return listenerEventListeners;
+    }
+
+    @Override
     public Protocol downstreamProtocol() {
         return protocol;
+    }
+
+    @Override
+    public Server server() {
+        return null;
     }
 
     public List<NetworkFilter> getNetworkFilters() {

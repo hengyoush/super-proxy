@@ -4,16 +4,22 @@ import io.yhheng.superproxy.network.ConnectionPool;
 import io.yhheng.superproxy.protocol.Frame;
 import io.yhheng.superproxy.protocol.Protocol;
 
-public class ClientStream implements StreamReceiveListener {
+public class ClientStream extends Stream implements StreamReceiveListener {
     private UpstreamRequest upstreamRequest;
     private StreamSender streamSender;
     private ServerStream serverStream;
     private Protocol upstreamProtocol;
     private ConnectionPool connectionPool;
 
+    public ClientStream() {
+        // TODO upstreamRequest 需要在这里初始化
+        super();
+        setId(upstreamRequest.getFrame().getHeader().getRequestId());
+    }
+
     @Override
     public void onReceive(Frame frame) {
-
+        serverStream.receiveResponse(frame);
     }
 
     @Override
@@ -22,12 +28,8 @@ public class ClientStream implements StreamReceiveListener {
     }
 
 
-    public void appendHeaders(boolean endStream) {
-
-    }
-
-    public void appendData(boolean endStream) {
-
+    public void appendRequest(boolean endStream) {
+        streamSender.send(upstreamRequest);
     }
 
     public void setUpstreamRequest(UpstreamRequest upstreamRequest) {

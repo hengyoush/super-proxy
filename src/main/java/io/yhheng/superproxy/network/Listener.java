@@ -9,6 +9,7 @@ public interface Listener {
     void listen();
     void shutdown();
     List<NetworkFilter> networkFilters();
+    List<ListenerEventListener> listenerEventListeners();
     Protocol downstreamProtocol();
     Server server();
 }

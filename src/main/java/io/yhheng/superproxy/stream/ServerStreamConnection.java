@@ -5,8 +5,10 @@ import io.yhheng.superproxy.network.Connection;
 import io.yhheng.superproxy.protocol.DecodeResult;
 import io.yhheng.superproxy.protocol.Decoder;
 import io.yhheng.superproxy.protocol.Frame;
+import io.yhheng.superproxy.protocol.Header;
 import io.yhheng.superproxy.protocol.Protocol;
 import io.yhheng.superproxy.proxy.Proxy;
+import io.yhheng.superproxy.proxy.filter.StreamFilterManager;
 
 import java.io.IOException;
 
@@ -14,6 +16,8 @@ public class ServerStreamConnection implements StreamConnection {
     private Protocol protocol;
     private Connection connection;
     private Proxy proxy;
+    private ActiveStreamManager activeStreamManager;
+    private StreamFilterManager streamFilterManager;
 
     @Override
     public void dispatch(ByteBuf byteBuf) {
@@ -63,7 +67,7 @@ public class ServerStreamConnection implements StreamConnection {
         serverStream.setServerConnection(connection);
         serverStream.setFrame(frame);
         // TODO 提供一个单独的方法而不是使用getter
-        proxy.getActiveStreamManager().addActiveStream(serverStream);
+        proxy.getActiveStreamManager().addServerStream(serverStream);
         serverStream.onReceive(frame);
         UpstreamRequest upstreamRequest = serverStream.getUpstreamRequest();
         Connection connection = proxy.getClusterManager().initialzeConnectionForHost(serverStream.getUpstreamHost());
@@ -75,5 +79,10 @@ public class ServerStreamConnection implements StreamConnection {
         connection.write(byteBuf);
     }
     private void handleRequestOneWay(DecodeResult decodeResult) {}
-    private void handleResponse(DecodeResult decodeResult) {}
+    private void handleResponse(DecodeResult decodeResult) {
+        Frame frame = decodeResult.getFrame();
+        Header header = frame.getHeader();
+        ClientStream clientStream = activeStreamManager.findMatchClientStream(header.getRequestId());
+        clientStream.onReceive(frame);
+    }
 }
