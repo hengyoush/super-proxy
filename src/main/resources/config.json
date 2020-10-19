@@ -1,0 +1,73 @@
+{
+  "servers": [
+    {
+      "routers": [
+        {
+          "router_config_name": "server_router",
+
+          "route_config": [{
+            "routers": [
+              {
+                "match": {
+                  "type": "header",
+                  "headers": [
+                    {
+                      "name": "interface",
+                      "value": "com.DemoService"
+                    }
+                  ]
+                },
+                "route_action": {
+                  "cluster_name": "serverCluster"
+                }
+              }
+            ]
+          }]
+        }
+      ],
+      "listeners": [
+        {
+          "name": "serverListener",
+          "address": "127.0.0.1:2046",
+          "proxy_config": {
+            "downstream_protocol": "dubbo",
+            "upstream_protocol": "dubbo",
+            "route_config_name": "server_router"
+          }
+        }
+      ]
+    }
+  ],
+  "cluster_manager": {
+    "clusters": [
+      {
+        "Name": "serverCluster",
+        "type": "SIMPLE",
+        "lb_type": "LB_RANDOM",
+        "max_request_per_conn": 1024,
+        "conn_buffer_limit_bytes": 32768,
+        "hosts": [
+          {
+            "address": "127.0.0.1:20880"
+          }
+        ]
+      },
+      {
+        "Name": "clientCluster",
+        "type": "SIMPLE",
+        "lb_type": "LB_RANDOM",
+        "max_request_per_conn": 1024,
+        "conn_buffer_limit_bytes": 32768,
+        "hosts": [
+          {
+            "address": "127.0.0.1:2046"
+          }
+        ]
+      }
+    ]
+  },
+  "tracing":{
+    "enable": true,
+    "driver": "SOFATracer"
+  }
+}

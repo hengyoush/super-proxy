@@ -5,7 +5,16 @@ import java.util.List;
 public class ServerConfig {
     private String name;
     private List<ListenerConfig> listeners;
-    // TODO log path support
+    private List<RouteConfig> routeConfigs;
+
+    public List<RouteConfig> getRouteConfigs() {
+        return routeConfigs;
+    }
+
+    public void setRouteConfigs(List<RouteConfig> routeConfigs) {
+        this.routeConfigs = routeConfigs;
+    }
+// TODO log path support
 
     public String getName() {
         return name;
