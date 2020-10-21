@@ -1,25 +1,10 @@
 package io.yhheng.superproxy.config;
 
+import java.util.List;
+
 public class ProxyConfig {
-    private String downstreamProtocol;
-    private String upstreamProtocol;
     private String routerConfigName;
-
-    public String getDownstreamProtocol() {
-        return downstreamProtocol;
-    }
-
-    public void setDownstreamProtocol(String downstreamProtocol) {
-        this.downstreamProtocol = downstreamProtocol;
-    }
-
-    public String getUpstreamProtocol() {
-        return upstreamProtocol;
-    }
-
-    public void setUpstreamProtocol(String upstreamProtocol) {
-        this.upstreamProtocol = upstreamProtocol;
-    }
+    private List<ProxyFilterConfig> proxyFilterConfigs;
 
     public String getRouterConfigName() {
         return routerConfigName;
@@ -27,5 +12,13 @@ public class ProxyConfig {
 
     public void setRouterConfigName(String routerConfigName) {
         this.routerConfigName = routerConfigName;
+    }
+
+    public List<ProxyFilterConfig> getProxyFilterConfigs() {
+        return proxyFilterConfigs;
+    }
+
+    public void setProxyFilterConfigs(List<ProxyFilterConfig> proxyFilterConfigs) {
+        this.proxyFilterConfigs = proxyFilterConfigs;
     }
 }

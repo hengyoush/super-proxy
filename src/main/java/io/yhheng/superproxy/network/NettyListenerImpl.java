@@ -1,7 +1,6 @@
 package io.yhheng.superproxy.network;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -11,10 +10,10 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.yhheng.superproxy.Server;
 import io.yhheng.superproxy.protocol.Protocol;
+import io.yhheng.superproxy.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.util.List;
 
@@ -25,6 +24,9 @@ public class NettyListenerImpl implements Listener {
     private List<NetworkFilter> networkFilters;
     private List<ListenerEventListener> listenerEventListeners;
     private Protocol protocol;
+    private Proxy proxy;
+
+    // netty
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
@@ -32,12 +34,14 @@ public class NettyListenerImpl implements Listener {
                              SocketAddress bindAddr,
                              List<NetworkFilter> networkFilters,
                              List<ListenerEventListener> listenerEventListeners,
-                             Protocol protocol) {
+                             Protocol protocol,
+                             Proxy proxy) {
         this.name = name;
         this.bindAddr = bindAddr;
         this.networkFilters = networkFilters;
         this.listenerEventListeners = listenerEventListeners;
         this.protocol = protocol;
+        this.proxy = proxy;
     }
 
     public void listen() {
@@ -53,15 +57,12 @@ public class NettyListenerImpl implements Listener {
                         ch.pipeline().addLast(new NetworkHandler(NettyListenerImpl.this));
                     }
                 });
-        serverBootstrap.bind(bindAddr).addListener(new GenericFutureListener<Future<? super Void>>() {
-            @Override
-            public void operationComplete(Future<? super Void> future) throws Exception {
-                if (future.isSuccess()) {
-                    listenerEventListeners.forEach(i -> i.onListenerStart(NettyListenerImpl.this));
-                } else {
-                    log.error("启动listener:{}失败,绑定地址:{}", name, bindAddr, future.cause());
-                    shutdown();
-                }
+        serverBootstrap.bind(bindAddr).addListener(future -> {
+            if (future.isSuccess()) {
+                listenerEventListeners.forEach(i -> i.onListenerStarted(NettyListenerImpl.this));
+            } else {
+                log.error("启动listener:{}失败,绑定地址:{}", name, bindAddr, future.cause());
+                shutdown();
             }
         });
 

@@ -1,31 +1,28 @@
 package io.yhheng.superproxy.network;
 
 import io.netty.buffer.ByteBuf;
-import io.yhheng.superproxy.proxy.Proxy;
 import io.yhheng.superproxy.stream.ServerStreamConnection;
+import io.yhheng.superproxy.stream.StreamConnection;
 
 public class StreamFilter implements NetworkFilter {
+    public static final String TYPE = "stream";
+
     @Override
     public FilterStatus onRead(ByteBuf byteBuf, Connection connection) {
-        Proxy proxy = connection.proxy();
-        if (proxy.getServerStreamConnection() == null) {
-            proxy.newServerStreamConnection(connection);
-        }
-        ServerStreamConnection serverStreamConnection = proxy.getServerStreamConnection();
+        StreamConnection streamConnection = connection.streamConnection();
         // request or response
-        serverStreamConnection.dispatch(byteBuf);
+        streamConnection.dispatch(byteBuf);
         return FilterStatus.STOP;
     }
 
     @Override
     public void onNewConnection(Connection connection) {
         Listener listener = connection.listener();
-        // 创建proxy， 绑定到connection上
-        Proxy proxy = new Proxy();
-        proxy.setDownstreamProtocol(listener.downstreamProtocol());
-        proxy.setServerConnection(connection);
-        proxy.setClusterManager(listener.server().getClusterManager());
-        connection.setProxy(proxy);
+        // 创建streamConnection,绑定到Connection上
+        var serverStreamConnection = new ServerStreamConnection(listener.downstreamProtocol(),
+                connection,
+                listener.proxy());
+        connection.setStreamConnection(serverStreamConnection);
     }
 
     @Override

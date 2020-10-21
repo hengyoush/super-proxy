@@ -1,8 +1,12 @@
 package io.yhheng.superproxy.network;
 
+import io.yhheng.superproxy.cluster.ClusterManager;
 import io.yhheng.superproxy.config.ListenerConfig;
 import io.yhheng.superproxy.config.ListenerEventListenerConfig;
 import io.yhheng.superproxy.config.NetworkFilterConfig;
+import io.yhheng.superproxy.protocol.Protocols;
+import io.yhheng.superproxy.proxy.Proxy;
+import io.yhheng.superproxy.proxy.ProxyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +17,6 @@ public class ListenerFactory {
     private static final Logger log = LoggerFactory.getLogger(ListenerFactory.class);
 
     public static Listener createListener(ListenerConfig listenerConfig) {
-        var bindAddr = listenerConfig.getAddress();
         var listenerEventListenerConfigs = listenerConfig.getListenerEventListenerConfigs();
 
         var listenerEventListeners = new ArrayList<ListenerEventListener>();
@@ -28,7 +31,7 @@ public class ListenerFactory {
 
         List<NetworkFilterConfig> networkFilterConfigs = listenerConfig.getNetworkFilterConfigs();
         var networkFilters = new ArrayList<NetworkFilter>();
-        for (NetworkFilterConfig config : networkFilterConfigs) {
+        for (var config : networkFilterConfigs) {
             NetworkFilter f = NetworkFilters.INSTANCE.get(config.getType());
             if (f == null) {
                 log.warn("type :{}的networkFilter不存在!", config.getType());
@@ -37,11 +40,13 @@ public class ListenerFactory {
             }
         }
 
-        new NettyListenerImpl(listenerConfig.getName(),
+        Proxy proxy = ProxyFactory.createProxy(listenerConfig.getProxyConfig(), ClusterManager.getInstance());
+
+        return new NettyListenerImpl(listenerConfig.getName(),
                 listenerConfig.getAddress(),
                 networkFilters,
-                listenerEventListeners,)
-
-        return null;
+                listenerEventListeners,
+                Protocols.INSTANCE.get(listenerConfig.getDownstreamProtocolName()),
+                proxy);
     }
 }

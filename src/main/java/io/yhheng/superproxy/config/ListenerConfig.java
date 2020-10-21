@@ -10,6 +10,7 @@ public class ListenerConfig {
     private List<NetworkFilterConfig> networkFilterConfigs;
     private List<ProxyFilterConfig> proxyFilterConfigs;
     private ProxyConfig proxyConfig;
+    private String downstreamProtocolName;
 
     // TODO ConnectionIdleTimeout
 
@@ -60,5 +61,13 @@ public class ListenerConfig {
 
     public void setNetworkFilterConfigs(List<NetworkFilterConfig> networkFilterConfigs) {
         this.networkFilterConfigs = networkFilterConfigs;
+    }
+
+    public String getDownstreamProtocolName() {
+        return downstreamProtocolName;
+    }
+
+    public void setDownstreamProtocolName(String downstreamProtocolName) {
+        this.downstreamProtocolName = downstreamProtocolName;
     }
 }

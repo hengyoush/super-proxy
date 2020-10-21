@@ -1,25 +1,19 @@
 package io.yhheng.superproxy.stream;
 
 import io.yhheng.superproxy.cluster.Cluster;
-import io.yhheng.superproxy.cluster.ClusterManager;
 import io.yhheng.superproxy.cluster.Host;
 import io.yhheng.superproxy.network.Connection;
 import io.yhheng.superproxy.protocol.Frame;
-import io.yhheng.superproxy.proxy.route.Route;
-import io.yhheng.superproxy.proxy.route.Routers;
-import io.yhheng.superproxy.proxy.filter.ProxyFilter;
-import io.yhheng.superproxy.proxy.filter.StreamFilterManager;
-
-import java.util.List;
+import io.yhheng.superproxy.proxy.Proxy;
 
 public class ServerStream implements StreamReceiveListener {
     private Long id;
-    private Connection serverConnection;
+    private final Connection serverConnection;
+    private final Proxy proxy;
+    private final StreamConnection streamConnection;
+
     private Frame frame;
-    private Routers routers;
-    private ClusterManager clusterManager;
-    private ActiveStreamManager activeStreamManager;
-    private StreamFilterManager streamFilterManager;
+    private Frame upstreamResponse;
 
     // set in processing
     private Cluster upstreamCluster;
@@ -27,24 +21,73 @@ public class ServerStream implements StreamReceiveListener {
     private UpstreamRequest upstreamRequest;
     private ClientStream clientStream;
 
-    public Connection getServerConnection() {
-        return serverConnection;
-    }
-
-    public void setServerConnection(Connection serverConnection) {
+    public ServerStream(Connection serverConnection, Proxy proxy, StreamConnection streamConnection) {
         this.serverConnection = serverConnection;
+        this.proxy = proxy;
+        this.streamConnection = streamConnection;
     }
 
-    public Frame getFrame() {
-        return frame;
+    @Override
+    public void onReceive(Frame frame) {
+        this.id = frame.getHeader().getRequestId();
+        setFrame(frame);
+        proxy.proxy(this);
+    }
+
+    @Override
+    public void onDecodeError(Frame frame) {
+
+    }
+
+    public void receiveResponse(Frame frame) {
+        // handle Frame
+        setUpstreamResponse(frame);
+        proxy.proxyUpResponse(this);
     }
 
     public void setFrame(Frame frame) {
         this.frame = frame;
     }
 
-    public UpstreamRequest getUpstreamRequest() {
-        return upstreamRequest;
+    public void setUpstreamCluster(Cluster upstreamCluster) {
+        this.upstreamCluster = upstreamCluster;
+    }
+
+    public void setUpstreamHost(Host upstreamHost) {
+        this.upstreamHost = upstreamHost;
+    }
+
+    public void setUpstreamRequest(UpstreamRequest upstreamRequest) {
+        this.upstreamRequest = upstreamRequest;
+    }
+
+    public void setClientStream(ClientStream clientStream) {
+        streamConnection.activeStreamManager().addClientStream(clientStream);
+        this.clientStream = clientStream;
+    }
+
+    public void setUpstreamResponse(Frame upstreamResponse) {
+        this.upstreamResponse = upstreamResponse;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Connection getServerConnection() {
+        return serverConnection;
+    }
+
+    public Frame getFrame() {
+        return frame;
+    }
+
+    public Frame getUpstreamResponse() {
+        return upstreamResponse;
+    }
+
+    public Proxy getProxy() {
+        return proxy;
     }
 
     public Cluster getUpstreamCluster() {
@@ -55,82 +98,11 @@ public class ServerStream implements StreamReceiveListener {
         return upstreamHost;
     }
 
-    @Override
-    public void onReceive(Frame frame) {
-        // TODO 可以用一个线程池
-
-        runFilters(StreamPhase.PreRoute);
-
-        // match route(select cluster)
-        matchRoute();
-
-        runFilters(StreamPhase.AfterRoute);
-
-        // choose host(in-cluster load balance
-        chooseHost();
-
-        runFilters(StreamPhase.AfterChooseHost);
-
-        // create new client stream
-        createClientStream();
-
-        // send request
-        sendRequest();
+    public UpstreamRequest getUpstreamRequest() {
+        return upstreamRequest;
     }
 
-    @Override
-    public void onDecodeError(Frame frame) {
-
-    }
-
-    public void receiveResponse(Frame frame) {
-        // handle Frame
-        runFilters(frame, StreamPhase.UpstreamResponse);
-        serverConnection.write(frame.getRawBuf());
-    }
-
-    private void runFilters(StreamPhase phase) {
-        runFilters(frame, phase);
-    }
-
-    private void runFilters(Frame frame, StreamPhase phase) {
-        List<ProxyFilter> filters = streamFilterManager.getFilters(phase);
-        for (int i = 0; i < filters.size(); i++) {
-            ProxyFilter proxyFilter = filters.get(i);
-            ProxyFilter.FilterStatus filterStatus = proxyFilter.filter(frame);
-            if (filterStatus == ProxyFilter.FilterStatus.STOP) {
-                break;
-            }
-        }
-    }
-
-    private void matchRoute() {
-        Route match = routers.match(frame.getHeader());
-        if (match == null) {
-            // TODO no upstream cluster found, end the stream
-        }
-
-        String clusterName = match.routerAction().getClusterName();
-        this.upstreamCluster = clusterManager.getCluster(clusterName);
-    }
-
-    private void chooseHost() {
-        this.upstreamHost = upstreamCluster.selectHost();
-        Connection connection = clusterManager.initialzeConnectionForHost(upstreamHost);
-    }
-
-    private void createClientStream() {
-        this.upstreamRequest = new UpstreamRequest();
-        upstreamRequest.setFrame(frame);
-        upstreamRequest.setHost(upstreamHost);
-        this.clientStream = new ClientStream();
-        clientStream.setStreamSender(null);
-        clientStream.setUpstreamRequest(upstreamRequest);
-        activeStreamManager.addClientStream(clientStream);
-
-    }
-
-    private void sendRequest() {
-        clientStream.appendRequest(true);
+    public ClientStream getClientStream() {
+        return clientStream;
     }
 }

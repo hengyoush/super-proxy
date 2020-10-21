@@ -6,4 +6,5 @@ import io.yhheng.superproxy.protocol.Protocol;
 public interface StreamConnection {
     void dispatch(ByteBuf byteBuf);
     Protocol protocol();
+    ActiveStreamManager activeStreamManager();
 }
