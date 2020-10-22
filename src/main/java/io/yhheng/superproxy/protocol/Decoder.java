@@ -7,7 +7,9 @@ import java.io.IOException;
 public interface Decoder {
     DecodeResult decode(ByteBuf byteBuf) throws IOException;
 
+    Protocol protocol();
+
     enum DecodeStatus {
-        NEED_MORE_INPUT, COMPLETE, ERROR
+        NEED_MORE_INPUT, COMPLETE, BROKEN
     }
 }

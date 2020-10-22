@@ -6,9 +6,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import io.yhheng.superproxy.Server;
+import io.yhheng.superproxy.protocol.LengthFieldSupport;
 import io.yhheng.superproxy.protocol.Protocol;
 import io.yhheng.superproxy.proxy.Proxy;
 import org.slf4j.Logger;
@@ -50,13 +49,25 @@ public class NettyListenerImpl implements Listener {
         this.workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
         serverBootstrap.group(bossGroup, workerGroup)
                 .childOption(ChannelOption.TCP_NODELAY, true)
-                .childOption(ChannelOption.SO_KEEPALIVE, true)
-                .childHandler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new NetworkHandler(NettyListenerImpl.this));
-                    }
-                });
+                .childOption(ChannelOption.SO_KEEPALIVE, true);
+        ChannelInitializer<SocketChannel> channelInitializer;
+        if (protocol instanceof LengthFieldSupport) {
+            channelInitializer = new ChannelInitializer<>() {
+                @Override
+                protected void initChannel(SocketChannel ch) {
+                    ch.pipeline().addLast(new LengthFieldSupportProtocolHandler(NettyListenerImpl.this));
+
+                }
+            };
+        } else {
+            channelInitializer = new ChannelInitializer<>() {
+                @Override
+                protected void initChannel(SocketChannel ch) {
+                    ch.pipeline().addLast(new NetworkHandler(NettyListenerImpl.this));
+                }
+            };
+        }
+        serverBootstrap.childHandler(channelInitializer);
         serverBootstrap.bind(bindAddr).addListener(future -> {
             if (future.isSuccess()) {
                 listenerEventListeners.forEach(i -> i.onListenerStarted(NettyListenerImpl.this));
@@ -95,6 +106,11 @@ public class NettyListenerImpl implements Listener {
     @Override
     public Server server() {
         return null;
+    }
+
+    @Override
+    public Proxy proxy() {
+        return proxy;
     }
 
     public List<NetworkFilter> getNetworkFilters() {

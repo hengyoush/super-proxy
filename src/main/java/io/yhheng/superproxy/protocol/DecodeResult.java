@@ -5,7 +5,7 @@ import io.yhheng.superproxy.stream.StreamType;
 public class DecodeResult {
     public static final DecodeResult NEED_MORE_INPUT = new DecodeResult();
     private Frame frame;
-    private Decoder.DecodeStatus decodeStatus;
+    private Decoder.DecodeStatus decodeStatus = Decoder.DecodeStatus.NEED_MORE_INPUT;
     private StreamType streamType;
     private Throwable e;
 

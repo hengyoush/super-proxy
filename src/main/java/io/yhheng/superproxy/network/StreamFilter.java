@@ -16,13 +16,14 @@ public class StreamFilter implements NetworkFilter {
     }
 
     @Override
-    public void onNewConnection(Connection connection) {
+    public FilterStatus onNewConnection(Connection connection) {
         Listener listener = connection.listener();
         // 创建streamConnection,绑定到Connection上
         var serverStreamConnection = new ServerStreamConnection(listener.downstreamProtocol(),
                 connection,
                 listener.proxy());
         connection.setStreamConnection(serverStreamConnection);
+        return FilterStatus.CONTINUE;
     }
 
     @Override
