@@ -2,7 +2,7 @@ package io.yhheng.superproxy.protocol;
 
 import io.netty.buffer.ByteBuf;
 
-public class Frame {
+public abstract class Frame {
     private Header header;
     private ByteBuf data;
     private ByteBuf rawBuf;
@@ -32,9 +32,7 @@ public class Frame {
         this.rawBuf = rawBuf;
     }
 
-    boolean isHeartBeat() {
-        return header.isHeartbeat();
-    }
+    public abstract boolean isHeartBeat();
 
     public Protocol getProtocol() {
         return protocol;

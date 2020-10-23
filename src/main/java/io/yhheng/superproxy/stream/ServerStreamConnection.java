@@ -6,10 +6,9 @@ import io.yhheng.superproxy.protocol.DecodeResult;
 import io.yhheng.superproxy.protocol.Decoder;
 import io.yhheng.superproxy.protocol.Frame;
 import io.yhheng.superproxy.protocol.Header;
+import io.yhheng.superproxy.protocol.HeartbeatSupport;
 import io.yhheng.superproxy.protocol.Protocol;
 import io.yhheng.superproxy.proxy.Proxy;
-
-import java.io.IOException;
 
 public class ServerStreamConnection implements StreamConnection {
     private final Protocol protocol;
@@ -27,32 +26,25 @@ public class ServerStreamConnection implements StreamConnection {
     }
 
     @Override
-    public void dispatch(ByteBuf byteBuf) {
+    public void dispatch(DecodeResult decodeResult) {
         // 决定是request还是response
-        try {
-            DecodeResult decode = protocol.getDecoder().decode(byteBuf);
-            if (decode.getDecodeStatus() == Decoder.DecodeStatus.COMPLETE) {
-                switch (decode.getStreamType()) {
-                    case Request:
-                        handleRequest(decode);
-                        break;
-                    case Response:
-                        handleResponse(decode);
-                        break;
-                    case RequestOneWay:
-                        handleRequestOneWay(decode);
-                        break;
-                    default:
-                        throw new IllegalStateException();
+        if (decodeResult.getDecodeStatus() == Decoder.DecodeStatus.COMPLETE) {
+            switch (decodeResult.getStreamType()) {
+                case Request:
+                    handleRequest(decodeResult);
+                    break;
+                case Response:
+                    handleResponse(decodeResult);
+                    break;
+                case RequestOneWay:
+                    handleRequestOneWay(decodeResult);
+                    break;
+                default:
+                    throw new IllegalStateException();
 
-                }
-            } else {
-                // 没有足够数据输入,直接返回
-                // 需要注意不要修改byteBuf的readerIndex,或许该在外面保存？
-                return;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } else {
+            throw new IllegalStateException("ServerStreamConnection接收到一个尚未解码的请求/响应");
         }
     }
 
@@ -69,9 +61,10 @@ public class ServerStreamConnection implements StreamConnection {
     private void handleRequest(DecodeResult decodeResult) {
         // 区分是心跳还是普通请求
         Frame frame = decodeResult.getFrame();
-        if (frame.getHeader().isHeartbeat()) {
-            // TODO 使用protocol特定的心跳响应回复请求
-
+        if (frame.isHeartBeat() && Protocol.supportHeartBeat(protocol)) {
+            ByteBuf byteBuf = ((HeartbeatSupport) protocol).generateHeartBeatResponse(frame);
+            connection.write(byteBuf);
+            return;
         }
         // 创建ServerStream
         ServerStream serverStream = new ServerStream(connection, proxy, this);

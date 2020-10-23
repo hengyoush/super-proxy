@@ -1,8 +1,12 @@
-package io.yhheng.superproxy.network;
+package io.yhheng.superproxy.network.netty;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
+import io.yhheng.superproxy.network.Connection;
+import io.yhheng.superproxy.network.FilterStatus;
+import io.yhheng.superproxy.network.Listener;
+import io.yhheng.superproxy.network.NetworkFilter;
+import io.yhheng.superproxy.protocol.DecodeResult;
 
 import java.util.List;
 import java.util.Map;
@@ -11,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * TODO 修改此处overload方法
  */
-public class NetworkHandler extends ByteToMessageDecoder {
+public class NetworkHandler extends ChannelDuplexHandler {
     private final Listener listener;
     private final Map<String, Connection> connTable = new ConcurrentHashMap<>();
 
@@ -20,15 +24,12 @@ public class NetworkHandler extends ByteToMessageDecoder {
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        // 通过ctx拿到Connection
-        String channelId = ctx.channel().id().asLongText();
-        Connection connection = connTable.get(channelId);
-        if (connection == null) {
-            // TODO log warn here
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (msg instanceof DecodeResult) {
+            handleData((DecodeResult) msg, connTable.get(ctx.channel().id().asLongText()));
+        } else {
+            ctx.fireChannelRead(msg);
         }
-
-        handleData(in, connection);
     }
 
     @Override
@@ -38,10 +39,10 @@ public class NetworkHandler extends ByteToMessageDecoder {
         handleNewConnection(connection);
     }
 
-    public void handleData(ByteBuf byteBuf, Connection connection) {
+    public void handleData(DecodeResult decodeResult, Connection connection) {
         List<NetworkFilter> networkFilters = listener.networkFilters();
         for (int i = 0; i < networkFilters.size(); i++) {
-            FilterStatus filterStatus = networkFilters.get(i).onRead(byteBuf, connection);
+            FilterStatus filterStatus = networkFilters.get(i).onRead(decodeResult, connection);
             if (filterStatus == FilterStatus.STOP) {
                 break;
             }

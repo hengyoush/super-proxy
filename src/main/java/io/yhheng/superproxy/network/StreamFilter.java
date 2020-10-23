@@ -1,6 +1,7 @@
 package io.yhheng.superproxy.network;
 
 import io.netty.buffer.ByteBuf;
+import io.yhheng.superproxy.protocol.DecodeResult;
 import io.yhheng.superproxy.stream.ServerStreamConnection;
 import io.yhheng.superproxy.stream.StreamConnection;
 
@@ -8,10 +9,10 @@ public class StreamFilter implements NetworkFilter {
     public static final String TYPE = "stream";
 
     @Override
-    public FilterStatus onRead(ByteBuf byteBuf, Connection connection) {
+    public FilterStatus onRead(DecodeResult decodeResult, Connection connection) {
         StreamConnection streamConnection = connection.streamConnection();
         // request or response
-        streamConnection.dispatch(byteBuf);
+        streamConnection.dispatch(decodeResult);
         return FilterStatus.STOP;
     }
 

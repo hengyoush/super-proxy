@@ -1,4 +1,4 @@
-package io.yhheng.superproxy.network;
+package io.yhheng.superproxy.network.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -7,7 +7,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.yhheng.superproxy.Server;
+import io.yhheng.superproxy.network.Listener;
+import io.yhheng.superproxy.network.ListenerEventListener;
+import io.yhheng.superproxy.network.NetworkFilter;
 import io.yhheng.superproxy.protocol.LengthFieldSupport;
+import io.yhheng.superproxy.protocol.LengthFieldSupportProtocol;
 import io.yhheng.superproxy.protocol.Protocol;
 import io.yhheng.superproxy.proxy.Proxy;
 import org.slf4j.Logger;
@@ -55,14 +59,15 @@ public class NettyListenerImpl implements Listener {
             channelInitializer = new ChannelInitializer<>() {
                 @Override
                 protected void initChannel(SocketChannel ch) {
-                    ch.pipeline().addLast(new LengthFieldSupportProtocolHandler(NettyListenerImpl.this));
-
+                    ch.pipeline().addLast(new LengthFieldSupportProtocolHandler((LengthFieldSupportProtocol) protocol));
+                    ch.pipeline().addLast(new NetworkHandler(NettyListenerImpl.this));
                 }
             };
         } else {
             channelInitializer = new ChannelInitializer<>() {
                 @Override
                 protected void initChannel(SocketChannel ch) {
+                    ch.pipeline().addLast(new NormalDecodeHandler(protocol));
                     ch.pipeline().addLast(new NetworkHandler(NettyListenerImpl.this));
                 }
             };

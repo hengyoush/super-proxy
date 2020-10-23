@@ -11,16 +11,9 @@ import io.yhheng.superproxy.protocol.Protocol;
 import io.yhheng.superproxy.protocol.Protocols;
 import io.yhheng.superproxy.stream.StreamType;
 
+import static io.yhheng.superproxy.protocol.dubbo.DubboProtocolConstants.*;
+
 public class DubboDecoder extends AbstractDecoder {
-    // header length.
-    protected static final int HEADER_LENGTH = 16;
-    // magic header.
-    protected static final short MAGIC = (short) 0xdabb;
-    // message flag.
-    protected static final byte FLAG_REQUEST = (byte) 0x80;
-    protected static final byte FLAG_TWOWAY = (byte) 0x40;
-    protected static final byte FLAG_EVENT = (byte) 0x20;
-    protected static final int SERIALIZATION_MASK = 0x1f;
 
     @Override
     public DecodeResult tryDecode(ByteBuf byteBuf) {
@@ -45,36 +38,57 @@ public class DubboDecoder extends AbstractDecoder {
         boolean isTwoway = (b & FLAG_TWOWAY) == FLAG_TWOWAY;
         boolean isEvent = (b & FLAG_EVENT) == FLAG_EVENT;
         byteBuf.readerIndex(HEADER_LENGTH);
+        DubboHeader header = new DubboHeader();
+        header.setReq(isRequest);
+        header.setTwoway(isTwoway);
+        header.setEvent(isEvent);
+        header.setRequestId(byteBuf.getLong(4));
+        header.setStatus(byteBuf.getByte(3));
+        header.setSerializerId(b & SERIALIZATION_MASK);
         if (isRequest) {
-           return decodeRequest(byteBuf, isTwoway, isEvent);
+            return decodeRequest(byteBuf, header);
         } else {
-            // TODO response handle
+            return decodeResponse(byteBuf, header);
+        }
+    }
+
+    private DecodeResult decodeRequest(ByteBuf byteBuf, DubboHeader header) {
+        try {
+            Hessian2ObjectInput objectInput =
+                    new Hessian2ObjectInput(new ByteBufInputStream(byteBuf, byteBuf.readableBytes()));
+            int savedIndex = byteBuf.readerIndex(); // 在body的开始处
+            header.setDubboVersion(objectInput.readUTF());
+            header.setInterfaceName(objectInput.readUTF());
+            header.setVersion(objectInput.readUTF());
+            header.setGroup(""); // TODO
+            Frame frame = new DubboFrame();
+            byteBuf.readerIndex(savedIndex);
+            frame.setData(byteBuf);
+            frame.setHeader(header);
+            DecodeResult decodeResult = new DecodeResult();
+            decodeResult.setDecodeStatus(DecodeStatus.COMPLETE);
+            decodeResult.setFrame(frame);
+            decodeResult.setStreamType(header.isTwoway() ? StreamType.Request : StreamType.RequestOneWay);
+            return decodeResult;
+        } catch (Throwable e) {
+            // TODO broken request
             return null;
         }
     }
 
-    private DecodeResult decodeRequest(ByteBuf byteBuf, boolean isTwoway, boolean isEvent) {
+    private DecodeResult decodeResponse(ByteBuf byteBuf, DubboHeader header) {
         try {
-            Hessian2ObjectInput objectInput =
-                    new Hessian2ObjectInput(new ByteBufInputStream(byteBuf, byteBuf.readableBytes() - HEADER_LENGTH));
-            int savedIndex = byteBuf.readerIndex();
-            DubboHeader h = new DubboHeader();
-            h.setFrameworkVersion(objectInput.readUTF());
-            h.setServiceName(objectInput.readUTF());
-            h.setVersion(objectInput.readUTF());
-            h.setEvent(isEvent);
-            h.setGroup(""); // TODO
-            Frame frame = new Frame();
-            byteBuf.readerIndex(savedIndex);
+            Frame frame = new DubboFrame();
+            frame.setHeader(header);
             frame.setData(byteBuf);
-            frame.setHeader(h);
+            frame.setRawBuf(byteBuf);
             DecodeResult decodeResult = new DecodeResult();
             decodeResult.setDecodeStatus(DecodeStatus.COMPLETE);
             decodeResult.setFrame(frame);
-            decodeResult.setStreamType(StreamType.Request);
+            decodeResult.setStreamType(StreamType.Response);
             return decodeResult;
         } catch (Throwable e) {
-            // TODO broken request
+            // TODO broken response
             return null;
         }
     }
