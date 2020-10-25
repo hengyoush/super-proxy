@@ -39,4 +39,13 @@ public class ClientStream extends Stream implements StreamReceiveListener {
     public void setStreamSender(StreamSender streamSender) {
         this.streamSender = streamSender;
     }
+
+    @Override
+    public void reset(StreamResetReason resetReason) {
+        serverStream.reset(resetReason);
+    }
+
+    public void setServerStream(ServerStream serverStream) {
+        this.serverStream = serverStream;
+    }
 }

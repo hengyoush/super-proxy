@@ -3,18 +3,19 @@ package io.yhheng.superproxy.network.netty;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.yhheng.superproxy.network.Connection;
+import io.yhheng.superproxy.network.ConnectionEventListener;
 import io.yhheng.superproxy.network.FilterStatus;
 import io.yhheng.superproxy.network.Listener;
-import io.yhheng.superproxy.network.NetworkFilter;
+import io.yhheng.superproxy.network.NetworkReadFilter;
 import io.yhheng.superproxy.protocol.DecodeResult;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * TODO 修改此处overload方法
- */
+import static io.yhheng.superproxy.network.ConnectionEventListener.ConnectionEvent.Connected;
+import static io.yhheng.superproxy.network.ConnectionEventListener.ConnectionEvent.RemoteClose;
+
 public class NetworkHandler extends ChannelDuplexHandler {
     private final Listener listener;
     private final Map<String, Connection> connTable = new ConcurrentHashMap<>();
@@ -39,10 +40,18 @@ public class NetworkHandler extends ChannelDuplexHandler {
         handleNewConnection(connection);
     }
 
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        Connection removedConnection = connTable.remove(ctx.channel().id().asLongText());
+        removedConnection.close();
+        handleCloseConnection(removedConnection);
+        ctx.fireChannelInactive();
+    }
+
     public void handleData(DecodeResult decodeResult, Connection connection) {
-        List<NetworkFilter> networkFilters = listener.networkFilters();
-        for (int i = 0; i < networkFilters.size(); i++) {
-            FilterStatus filterStatus = networkFilters.get(i).onRead(decodeResult, connection);
+        List<NetworkReadFilter> networkReadFilters = listener.networkReadFilters();
+        for (int i = 0; i < networkReadFilters.size(); i++) {
+            FilterStatus filterStatus = networkReadFilters.get(i).onRead(decodeResult, connection);
             if (filterStatus == FilterStatus.STOP) {
                 break;
             }
@@ -50,12 +59,25 @@ public class NetworkHandler extends ChannelDuplexHandler {
     }
 
     public void handleNewConnection(Connection connection) {
-        List<NetworkFilter> networkFilters = listener.networkFilters();
-        for (int i = 0; i < networkFilters.size(); i++) {
-            FilterStatus filterStatus = networkFilters.get(i).onNewConnection(connection);
+        List<NetworkReadFilter> networkReadFilters = listener.networkReadFilters();
+        List<ConnectionEventListener> connectionEventListeners = listener.connectionEventListeners();
+
+        for (var l : connectionEventListeners) {
+            l.onEvent(Connected, connection);
+        }
+
+        for (int i = 0; i < networkReadFilters.size(); i++) {
+            FilterStatus filterStatus = networkReadFilters.get(i).onNewConnection(connection);
             if (filterStatus == FilterStatus.STOP) {
                 break;
             }
+        }
+    }
+
+    public void handleCloseConnection(Connection connection) {
+        List<ConnectionEventListener> connectionEventListeners = listener.connectionEventListeners();
+        for (var l : connectionEventListeners) {
+            l.onEvent(RemoteClose, connection);
         }
     }
 }

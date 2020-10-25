@@ -27,6 +27,13 @@ public class ServerStreamConnection implements StreamConnection {
 
     @Override
     public void dispatch(DecodeResult decodeResult) {
+        Frame frame = decodeResult.getFrame();
+        if (frame.isHeartBeat() && Protocol.supportHeartBeat(protocol)) {
+            ByteBuf byteBuf = ((HeartbeatSupport) protocol).generateHeartBeatResponse(frame);
+            connection.write(byteBuf);
+            return;
+        }
+
         // 决定是request还是response
         if (decodeResult.getDecodeStatus() == Decoder.DecodeStatus.COMPLETE) {
             switch (decodeResult.getStreamType()) {
@@ -58,19 +65,32 @@ public class ServerStreamConnection implements StreamConnection {
         return activeStreamManager;
     }
 
+    @Override
+    public void close(boolean closeRemotely) {
+        final StreamResetReason reason = closeRemotely ? StreamResetReason.CloseRemotely:StreamResetReason.CloseLocally;
+        // already create client stream
+        activeStreamManager.getAllClientStreams().forEach(clientStream -> clientStream.reset(reason));
+        // not ready yet
+        activeStreamManager.getAllServerStreams().forEach(serverStream -> serverStream.reset(reason));
+
+        activeStreamManager.shutdown();
+    }
+
     private void handleRequest(DecodeResult decodeResult) {
-        // 区分是心跳还是普通请求
         Frame frame = decodeResult.getFrame();
-        if (frame.isHeartBeat() && Protocol.supportHeartBeat(protocol)) {
-            ByteBuf byteBuf = ((HeartbeatSupport) protocol).generateHeartBeatResponse(frame);
-            connection.write(byteBuf);
-            return;
-        }
         // 创建ServerStream
         ServerStream serverStream = new ServerStream(connection, proxy, this);
+        activeStreamManager.addServerStream(serverStream);
         serverStream.onReceive(frame);
     }
-    private void handleRequestOneWay(DecodeResult decodeResult) {}
+
+    private void handleRequestOneWay(DecodeResult decodeResult) {
+        Frame frame = decodeResult.getFrame();
+        // 创建ServerStream
+        ServerStream serverStream = new ServerStream(connection, proxy, this, false);
+        serverStream.onReceive(frame);
+    }
+
     private void handleResponse(DecodeResult decodeResult) {
         Frame frame = decodeResult.getFrame();
         Header header = frame.getHeader();

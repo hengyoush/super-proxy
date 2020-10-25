@@ -1,9 +1,10 @@
 package io.yhheng.superproxy.network;
 
 import io.yhheng.superproxy.cluster.ClusterManager;
+import io.yhheng.superproxy.config.ConnectionEventListenerConfig;
 import io.yhheng.superproxy.config.ListenerConfig;
 import io.yhheng.superproxy.config.ListenerEventListenerConfig;
-import io.yhheng.superproxy.config.NetworkFilterConfig;
+import io.yhheng.superproxy.config.NetworkReadFilterConfig;
 import io.yhheng.superproxy.network.netty.NettyListenerImpl;
 import io.yhheng.superproxy.protocol.Protocols;
 import io.yhheng.superproxy.proxy.Proxy;
@@ -30,14 +31,25 @@ public class ListenerFactory {
             }
         }
 
-        List<NetworkFilterConfig> networkFilterConfigs = listenerConfig.getNetworkFilterConfigs();
-        var networkFilters = new ArrayList<NetworkFilter>();
-        for (var config : networkFilterConfigs) {
-            NetworkFilter f = NetworkFilters.INSTANCE.get(config.getType());
+        List<NetworkReadFilterConfig> networkReadFilterConfigs = listenerConfig.getNetworkReadFilterConfigs();
+        var networkFilters = new ArrayList<NetworkReadFilter>();
+        for (var config : networkReadFilterConfigs) {
+            NetworkReadFilter f = NetworkReadFilters.INSTANCE.get(config.getType());
             if (f == null) {
                 log.warn("type :{}的networkFilter不存在!", config.getType());
             } else {
                 networkFilters.add(f);
+            }
+        }
+
+        List<ConnectionEventListenerConfig> connectionEventListenerConfigs = listenerConfig.getConnectionEventListenerConfigs();
+        var connectionEventListeners = new ArrayList<ConnectionEventListener>();
+        for (var config : connectionEventListenerConfigs) {
+            ConnectionEventListener l = ConnectionEventListeners.INSTANCE.get(config.getType());
+            if (l == null) {
+                log.warn("type :{}的ConnectionEventListenerConfig不存在!", config.getType());
+            } else {
+                connectionEventListeners.add(l);
             }
         }
 
@@ -47,6 +59,7 @@ public class ListenerFactory {
                 listenerConfig.getAddress(),
                 networkFilters,
                 listenerEventListeners,
+                connectionEventListeners,
                 Protocols.INSTANCE.get(listenerConfig.getDownstreamProtocolName()),
                 proxy);
     }

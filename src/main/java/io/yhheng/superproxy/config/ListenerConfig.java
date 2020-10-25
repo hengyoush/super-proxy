@@ -7,7 +7,8 @@ public class ListenerConfig {
     private String name;
     private SocketAddress address;
     private List<ListenerEventListenerConfig> listenerEventListenerConfigs;
-    private List<NetworkFilterConfig> networkFilterConfigs;
+    private List<NetworkReadFilterConfig> networkReadFilterConfigs;
+    private List<ConnectionEventListenerConfig> connectionEventListenerConfigs;
     private List<ProxyFilterConfig> proxyFilterConfigs;
     private ProxyConfig proxyConfig;
     private String downstreamProtocolName;
@@ -55,12 +56,12 @@ public class ListenerConfig {
         this.proxyConfig = proxyConfig;
     }
 
-    public List<NetworkFilterConfig> getNetworkFilterConfigs() {
-        return networkFilterConfigs;
+    public List<NetworkReadFilterConfig> getNetworkReadFilterConfigs() {
+        return networkReadFilterConfigs;
     }
 
-    public void setNetworkFilterConfigs(List<NetworkFilterConfig> networkFilterConfigs) {
-        this.networkFilterConfigs = networkFilterConfigs;
+    public void setNetworkReadFilterConfigs(List<NetworkReadFilterConfig> networkReadFilterConfigs) {
+        this.networkReadFilterConfigs = networkReadFilterConfigs;
     }
 
     public String getDownstreamProtocolName() {
@@ -69,5 +70,13 @@ public class ListenerConfig {
 
     public void setDownstreamProtocolName(String downstreamProtocolName) {
         this.downstreamProtocolName = downstreamProtocolName;
+    }
+
+    public List<ConnectionEventListenerConfig> getConnectionEventListenerConfigs() {
+        return connectionEventListenerConfigs;
+    }
+
+    public void setConnectionEventListenerConfigs(List<ConnectionEventListenerConfig> connectionEventListenerConfigs) {
+        this.connectionEventListenerConfigs = connectionEventListenerConfigs;
     }
 }

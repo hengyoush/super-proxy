@@ -8,4 +8,5 @@ public interface StreamConnection {
     void dispatch(DecodeResult decodeResult);
     Protocol protocol();
     ActiveStreamManager activeStreamManager();
+    void close(boolean closeRemotely);
 }

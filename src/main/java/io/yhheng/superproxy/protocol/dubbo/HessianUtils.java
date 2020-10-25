@@ -19,4 +19,15 @@ public class HessianUtils {
             throw new IllegalStateException(e);
         }
     }
+
+    public static ByteBuf writeString(String msg) {
+        ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(Unpooled.buffer());
+        Hessian2ObjectOutput hessian2ObjectOutput = new Hessian2ObjectOutput(byteBufOutputStream);
+        try {
+            hessian2ObjectOutput.writeUTF(msg);
+            return byteBufOutputStream.buffer();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

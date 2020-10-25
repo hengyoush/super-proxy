@@ -3,7 +3,7 @@ package io.yhheng.superproxy.network;
 import io.netty.buffer.ByteBuf;
 import io.yhheng.superproxy.protocol.DecodeResult;
 
-public interface NetworkFilter {
+public interface NetworkReadFilter {
     FilterStatus onRead(DecodeResult decodeResult, Connection connection);
 
     FilterStatus onNewConnection(Connection connection);

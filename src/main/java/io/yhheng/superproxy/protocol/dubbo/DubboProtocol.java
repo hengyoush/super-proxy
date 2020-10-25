@@ -25,6 +25,16 @@ public class DubboProtocol implements LengthFieldSupportProtocol, HeartbeatSuppo
     }
 
     @Override
+    public ByteBuf generateFailedResponse(Header header, String msg) {
+        if (header instanceof DubboHeader) {
+            return getEncoder().encode(header, HessianUtils.writeString(msg));
+        } else {
+            // TODO log warn here
+            return null;
+        }
+    }
+
+    @Override
     public int maxFrameLength() {
         return 100 * 1024 * 1024;
     }

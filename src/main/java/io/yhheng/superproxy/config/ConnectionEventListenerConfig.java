@@ -1,6 +1,8 @@
 package io.yhheng.superproxy.config;
 
-public class NetworkFilterConfig {
+import io.yhheng.superproxy.stream.Stream;
+
+public class ConnectionEventListenerConfig {
     private String type;
 
     public String getType() {

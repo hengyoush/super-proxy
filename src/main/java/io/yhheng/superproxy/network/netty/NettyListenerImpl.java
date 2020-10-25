@@ -7,9 +7,10 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.yhheng.superproxy.Server;
+import io.yhheng.superproxy.network.ConnectionEventListener;
 import io.yhheng.superproxy.network.Listener;
 import io.yhheng.superproxy.network.ListenerEventListener;
-import io.yhheng.superproxy.network.NetworkFilter;
+import io.yhheng.superproxy.network.NetworkReadFilter;
 import io.yhheng.superproxy.protocol.LengthFieldSupport;
 import io.yhheng.superproxy.protocol.LengthFieldSupportProtocol;
 import io.yhheng.superproxy.protocol.Protocol;
@@ -24,8 +25,9 @@ public class NettyListenerImpl implements Listener {
     private static final Logger log = LoggerFactory.getLogger(NettyListenerImpl.class);
     private String name;
     private SocketAddress bindAddr;
-    private List<NetworkFilter> networkFilters;
+    private List<NetworkReadFilter> networkReadFilters;
     private List<ListenerEventListener> listenerEventListeners;
+    private List<ConnectionEventListener> connectionEventListeners;
     private Protocol protocol;
     private Proxy proxy;
 
@@ -35,14 +37,16 @@ public class NettyListenerImpl implements Listener {
 
     public NettyListenerImpl(String name,
                              SocketAddress bindAddr,
-                             List<NetworkFilter> networkFilters,
+                             List<NetworkReadFilter> networkReadFilters,
                              List<ListenerEventListener> listenerEventListeners,
+                             List<ConnectionEventListener> connectionEventListeners,
                              Protocol protocol,
                              Proxy proxy) {
         this.name = name;
         this.bindAddr = bindAddr;
-        this.networkFilters = networkFilters;
+        this.networkReadFilters = networkReadFilters;
         this.listenerEventListeners = listenerEventListeners;
+        this.connectionEventListeners = connectionEventListeners;
         this.protocol = protocol;
         this.proxy = proxy;
     }
@@ -94,13 +98,18 @@ public class NettyListenerImpl implements Listener {
     }
 
     @Override
-    public List<NetworkFilter> networkFilters() {
+    public List<NetworkReadFilter> networkReadFilters() {
         return null;
     }
 
     @Override
     public List<ListenerEventListener> listenerEventListeners() {
         return listenerEventListeners;
+    }
+
+    @Override
+    public List<ConnectionEventListener> connectionEventListeners() {
+        return connectionEventListeners;
     }
 
     @Override
@@ -118,7 +127,7 @@ public class NettyListenerImpl implements Listener {
         return proxy;
     }
 
-    public List<NetworkFilter> getNetworkFilters() {
-        return networkFilters;
+    public List<NetworkReadFilter> getNetworkReadFilters() {
+        return networkReadFilters;
     }
 }

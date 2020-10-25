@@ -9,8 +9,9 @@ import java.util.List;
 public interface Listener {
     void listen();
     void shutdown();
-    List<NetworkFilter> networkFilters();
+    List<NetworkReadFilter> networkReadFilters();
     List<ListenerEventListener> listenerEventListeners();
+    List<ConnectionEventListener> connectionEventListeners();
     Protocol downstreamProtocol();
     Server server();
     Proxy proxy();

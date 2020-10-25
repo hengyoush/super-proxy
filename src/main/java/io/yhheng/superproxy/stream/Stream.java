@@ -10,4 +10,6 @@ public abstract class Stream {
     public void setId(Long id) {
         this.id = id;
     }
+
+    public abstract void reset(StreamResetReason resetReason);
 }

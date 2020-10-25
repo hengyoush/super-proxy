@@ -6,11 +6,16 @@ import io.yhheng.superproxy.network.Connection;
 import io.yhheng.superproxy.protocol.Frame;
 import io.yhheng.superproxy.proxy.Proxy;
 
-public class ServerStream implements StreamReceiveListener {
+import java.util.concurrent.atomic.AtomicReference;
+
+public class ServerStream extends Stream implements StreamReceiveListener {
     private Long id;
     private final Connection serverConnection;
     private final Proxy proxy;
     private final StreamConnection streamConnection;
+
+
+    private boolean twoway;
 
     private Frame frame;
     private Frame upstreamResponse;
@@ -21,10 +26,17 @@ public class ServerStream implements StreamReceiveListener {
     private UpstreamRequest upstreamRequest;
     private ClientStream clientStream;
 
+    private AtomicReference<StreamResetReason> resetReason = new AtomicReference<>(null);
+
     public ServerStream(Connection serverConnection, Proxy proxy, StreamConnection streamConnection) {
+        this(serverConnection, proxy, streamConnection, true);
+    }
+
+    public ServerStream(Connection serverConnection, Proxy proxy, StreamConnection streamConnection, boolean twoway) {
         this.serverConnection = serverConnection;
         this.proxy = proxy;
         this.streamConnection = streamConnection;
+        this.twoway = twoway;
     }
 
     @Override
@@ -40,9 +52,11 @@ public class ServerStream implements StreamReceiveListener {
     }
 
     public void receiveResponse(Frame frame) {
-        // handle Frame
-        setUpstreamResponse(frame);
-        proxy.proxyUpResponse(this);
+        if (!isReset()) {
+            // handle Frame
+            setUpstreamResponse(frame);
+            proxy.proxyUpResponse(this);
+        }
     }
 
     public void setFrame(Frame frame) {
@@ -62,7 +76,9 @@ public class ServerStream implements StreamReceiveListener {
     }
 
     public void setClientStream(ClientStream clientStream) {
-        streamConnection.activeStreamManager().addClientStream(clientStream);
+        if (twoway) {
+            streamConnection.activeStreamManager().addClientStream(clientStream);
+        }
         this.clientStream = clientStream;
     }
 
@@ -72,6 +88,13 @@ public class ServerStream implements StreamReceiveListener {
 
     public Long getId() {
         return id;
+    }
+
+    @Override
+    public void reset(StreamResetReason resetReason) {
+        if (!this.resetReason.compareAndSet(null, resetReason)) {
+            // TODO log here already reset [info]
+        }
     }
 
     public Connection getServerConnection() {
@@ -104,5 +127,22 @@ public class ServerStream implements StreamReceiveListener {
 
     public ClientStream getClientStream() {
         return clientStream;
+    }
+
+
+    public boolean isTwoway() {
+        return twoway;
+    }
+
+    public void setTwoway(boolean twoway) {
+        this.twoway = twoway;
+    }
+
+    public AtomicReference<StreamResetReason> getResetReason() {
+        return resetReason;
+    }
+
+    public boolean isReset() {
+        return resetReason.get() != null;
     }
 }

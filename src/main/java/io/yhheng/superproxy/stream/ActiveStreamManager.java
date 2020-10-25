@@ -2,6 +2,7 @@ package io.yhheng.superproxy.stream;
 
 import io.yhheng.superproxy.network.Connection;
 
+import java.util.Collection;
 import java.util.Map;
 
 public class ActiveStreamManager {
@@ -23,5 +24,18 @@ public class ActiveStreamManager {
 
     public ClientStream findMatchClientStream(Long streamId) {
         return null;
+    }
+
+    public Collection<ClientStream> getAllClientStreams() {
+        return activeClientStreamMap.values();
+    }
+
+    public Collection<ServerStream> getAllServerStreams() {
+        return activeServerStreamMap.values();
+    }
+
+    public void shutdown() {
+        activeClientStreamMap.clear();
+        activeServerStreamMap.clear();
     }
 }
