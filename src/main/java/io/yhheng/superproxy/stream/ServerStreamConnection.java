@@ -67,7 +67,7 @@ public class ServerStreamConnection implements StreamConnection {
 
     @Override
     public void close(boolean closeRemotely) {
-        final StreamResetReason reason = closeRemotely ? StreamResetReason.CloseRemotely:StreamResetReason.CloseLocally;
+        final StreamResetReason reason = closeRemotely ? StreamResetReason.DownstreamConnectionCloseRemotely :StreamResetReason.DownstreamConnectionCloseLocally;
         // already create client stream
         activeStreamManager.getAllClientStreams().forEach(clientStream -> clientStream.reset(reason));
         // not ready yet

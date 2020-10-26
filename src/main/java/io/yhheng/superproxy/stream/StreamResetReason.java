@@ -1,12 +1,17 @@
 package io.yhheng.superproxy.stream;
 
 public enum StreamResetReason {
-    CloseRemotely, CloseLocally;
+    DownstreamConnectionCloseRemotely, DownstreamConnectionCloseLocally,
+    UpstreamConnectionTimeout, UpstreamConnectionCloseRemotely;
 
     public boolean isDownstreamClose() {
-        if (this == CloseLocally || this == CloseRemotely) {
+        if (this == DownstreamConnectionCloseLocally || this == DownstreamConnectionCloseRemotely) {
             return true;
         }
+        return false;
+    }
+
+    public boolean isUpstream() {
         return false;
     }
 }

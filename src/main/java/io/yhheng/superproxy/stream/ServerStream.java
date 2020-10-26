@@ -1,10 +1,13 @@
 package io.yhheng.superproxy.stream;
 
+import io.netty.buffer.ByteBuf;
 import io.yhheng.superproxy.cluster.Cluster;
 import io.yhheng.superproxy.cluster.Host;
 import io.yhheng.superproxy.network.Connection;
 import io.yhheng.superproxy.protocol.Frame;
 import io.yhheng.superproxy.proxy.Proxy;
+import io.yhheng.superproxy.proxy.ProxyPhase;
+import io.yhheng.superproxy.proxy.route.Route;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -14,17 +17,18 @@ public class ServerStream extends Stream implements StreamReceiveListener {
     private final Proxy proxy;
     private final StreamConnection streamConnection;
 
-
     private boolean twoway;
 
     private Frame frame;
     private Frame upstreamResponse;
 
     // set in processing
+    private Route route;
     private Cluster upstreamCluster;
     private Host upstreamHost;
     private UpstreamRequest upstreamRequest;
     private ClientStream clientStream;
+    private ProxyPhase currentProxyPhase;
 
     private AtomicReference<StreamResetReason> resetReason = new AtomicReference<>(null);
 
@@ -56,6 +60,17 @@ public class ServerStream extends Stream implements StreamReceiveListener {
             // handle Frame
             setUpstreamResponse(frame);
             proxy.proxyUpResponse(this);
+        }
+    }
+
+    public void sendHijackReply(String msg) {
+        ByteBuf byteBuf = frame.getProtocol().generateFailedResponse(frame.getHeader(), msg);
+        serverConnection.write(byteBuf);
+    }
+
+    public void cleanStream() {
+        if (isTwoway()) {
+            streamConnection.activeStreamManager().removeStream(getId());
         }
     }
 
@@ -95,6 +110,8 @@ public class ServerStream extends Stream implements StreamReceiveListener {
         if (!this.resetReason.compareAndSet(null, resetReason)) {
             // TODO log here already reset [info]
         }
+
+         cleanStream();
     }
 
     public Connection getServerConnection() {
@@ -144,5 +161,21 @@ public class ServerStream extends Stream implements StreamReceiveListener {
 
     public boolean isReset() {
         return resetReason.get() != null;
+    }
+
+    public void setCurrentProxyPhase(ProxyPhase currentProxyPhase) {
+        this.currentProxyPhase = currentProxyPhase;
+    }
+
+    public ProxyPhase getCurrentProxyPhase() {
+        return currentProxyPhase;
+    }
+
+    public Route getRoute() {
+        return route;
+    }
+
+    public void setRoute(Route route) {
+        this.route = route;
     }
 }

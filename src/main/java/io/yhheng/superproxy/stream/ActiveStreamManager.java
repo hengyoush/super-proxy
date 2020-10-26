@@ -18,6 +18,10 @@ public class ActiveStreamManager {
 
     }
 
+    public void removeStream(Long streamId) {
+        // remove server and client
+    }
+
     public ServerStream findMatchedServerStream(Long id) {
         return null;
     }
