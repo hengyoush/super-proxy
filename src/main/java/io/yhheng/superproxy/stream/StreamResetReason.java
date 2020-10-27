@@ -11,6 +11,7 @@ public enum StreamResetReason {
         return false;
     }
 
+    // TODO
     public boolean isUpstream() {
         return false;
     }

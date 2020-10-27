@@ -23,6 +23,7 @@ public class ClientStream extends Stream implements StreamReceiveListener {
         RetryState retryState = new RetryState();
         retryState.setCluster(upstreamRequest.getHost().cluster());
         retryState.setReqHeader(upstreamRequest.getFrame().getHeader());
+        // TODO retryPolicy应该从routerAction中取出
         retryState.setRetryPolicy(null);
         retryState.setRetryOn(retryState.getRetryPolicy().retryOn());
         retryState.setRetryRemaining(retryState.getRetryPolicy().numRetries());

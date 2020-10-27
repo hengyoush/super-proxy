@@ -1,15 +1,28 @@
 package io.yhheng.superproxy.config;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import java.net.SocketAddress;
 import java.util.List;
 
 public class ListenerConfig {
+    @JSONField(name = "name")
     private String name;
-    private SocketAddress address;
+    @JSONField(name = "address")
+    private String address;
+    @JSONField(name = "port")
+    private int port;
+    @JSONField(name = "type")
+    private String type; // TCP or UDP, currently only support TCP
+    @JSONField(name = "listener_event_listeners")
     private List<ListenerEventListenerConfig> listenerEventListenerConfigs;
+    @JSONField(name = "network_filters")
     private List<NetworkReadFilterConfig> networkReadFilterConfigs;
+    @JSONField(name = "connection_event_listeners")
     private List<ConnectionEventListenerConfig> connectionEventListenerConfigs;
-    private List<ProxyFilterConfig> proxyFilterConfigs;
+    @JSONField(name = "downstream_protocol")
+    private ProtocolConfig downstreamProtocol;
+    @JSONField(name = "proxy_config")
     private ProxyConfig proxyConfig;
     private String downstreamProtocolName;
 
@@ -24,28 +37,12 @@ public class ListenerConfig {
         this.name = name;
     }
 
-    public SocketAddress getAddress() {
-        return address;
-    }
-
-    public void setAddress(SocketAddress address) {
-        this.address = address;
-    }
-
     public List<ListenerEventListenerConfig> getListenerEventListenerConfigs() {
         return listenerEventListenerConfigs;
     }
 
     public void setListenerEventListenerConfigs(List<ListenerEventListenerConfig> listenerEventListenerConfigs) {
         this.listenerEventListenerConfigs = listenerEventListenerConfigs;
-    }
-
-    public List<ProxyFilterConfig> getProxyFilterConfigs() {
-        return proxyFilterConfigs;
-    }
-
-    public void setProxyFilterConfigs(List<ProxyFilterConfig> proxyFilterConfigs) {
-        this.proxyFilterConfigs = proxyFilterConfigs;
     }
 
     public ProxyConfig getProxyConfig() {

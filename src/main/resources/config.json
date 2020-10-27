@@ -1,38 +1,79 @@
 {
   "servers": [
     {
-      "routers": [
+      "route_tables": [
         {
-          "router_config_name": "server_router",
+          "router_table_name": "server_router",
 
-          "route_config": [{
-            "routers": [
-              {
-                "match": {
-                  "type": "header",
-                  "headers": [
-                    {
-                      "name": "interface",
-                      "value": "com.DemoService"
-                    }
-                  ]
-                },
-                "route_action": {
-                  "cluster_name": "serverCluster"
+          "route_table_entries": [
+            {
+              "type": "io.infinity.dubbo",
+              "match": {
+                "typed_config": {
+                  "interfaceName": "com.demo.DemoService",
+                  "group": "dev",
+                  "version": "0.0.1"
+                }
+              },
+              "route_action": {
+                "cluster_names": ["serverCluster"],
+                "upstream_protocol": "http",
+                "typed_config": {
+                  "rewrite_group": "prod"
                 }
               }
-            ]
-          }]
+            }
+          ]
         }
       ],
       "listeners": [
         {
           "name": "serverListener",
-          "address": "127.0.0.1:2046",
+          "address": "127.0.0.1",
+          "port": 8001,
+          "type": "TCP",
+          "downstream_protocol": {
+            "type": "dubbo",
+            "typed_config": {
+              "max_payload_size": 1048000
+            }
+          },
+          "listener_event_listeners": [
+            {
+              "type": "xxx",
+              "typed_config": {}
+            }
+          ],
+          "network_filters": [
+            {
+              "type": "stream",
+              "typed_config": {}
+            }
+          ],
+          "connection_event_listeners": [
+            {
+              "type": "stream",
+              "typed_config": {}
+            }
+          ],
           "proxy_config": {
-            "downstream_protocol": "dubbo",
-            "upstream_protocol": "dubbo",
-            "route_config_name": "server_router"
+            "route_config_name": "server_router",
+            "proxy_filters": [
+              {
+                "bind_phases": ["PreRoute", "AfterChooseHost"],
+                "type": "xxx",
+                "typed_config": {}
+              }
+            ],
+            "retry_config" : {
+              "retry_on": true,
+              "num_retries": 3,
+              "retry_timeout": 10000,
+              "backoff": {
+                "type": "jitter",
+                "typed_config": {}
+              }
+            }
           }
         }
       ]
@@ -65,9 +106,5 @@
         ]
       }
     ]
-  },
-  "tracing":{
-    "enable": true,
-    "driver": "SOFATracer"
   }
 }

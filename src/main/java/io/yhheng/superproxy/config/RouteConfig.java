@@ -1,17 +1,14 @@
 package io.yhheng.superproxy.config;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import java.util.List;
 import java.util.Map;
 
-/**
- * match : {
- *     header: {
- *         interface:
- *     }
- * }
- */
 public class RouteConfig {
+    @JSONField(name = "router_table_name")
     private String name;
+    @JSONField(name = "route_table_entries")
     private List<RouteEntry> routeEntries;
 
     public String getName() {
@@ -31,7 +28,11 @@ public class RouteConfig {
     }
 
     private static class RouteEntry {
+        @JSONField(name = "type")
+        private String type;
+        @JSONField(name = "match")
         private RouteMatchConfig routeMatchConfig;
+        @JSONField(name = "action")
         private RouteActionConfig routeActionConfig;
 
         public RouteMatchConfig getRouteMatchConfig() {
@@ -49,11 +50,6 @@ public class RouteConfig {
         public void setRouteActionConfig(RouteActionConfig routeActionConfig) {
             this.routeActionConfig = routeActionConfig;
         }
-    }
-
-    private static class RouteMatchConfig {
-        private String type;
-        private Map<String, Object> typedConfig;
 
         public String getType() {
             return type;
@@ -62,6 +58,11 @@ public class RouteConfig {
         public void setType(String type) {
             this.type = type;
         }
+    }
+
+    private static class RouteMatchConfig {
+        @JSONField(name = "typed_config")
+        private Map<String, Object> typedConfig;
 
         public Map<String, Object> getTypedConfig() {
             return typedConfig;
@@ -73,18 +74,12 @@ public class RouteConfig {
     }
 
     private static class RouteActionConfig {
-        private List<String> clusterNames;
+        @JSONField(name = "cluster_name")
+        private String clusterName;
+        @JSONField(name = "upstream_protocol")
         private String upstreamProtocolName;
-        private Map<String, String> headerRewriteMap;
-        private String lbType;
-
-        public List<String> getClusterNames() {
-            return clusterNames;
-        }
-
-        public void setClusterNames(List<String> clusterNames) {
-            this.clusterNames = clusterNames;
-        }
+        @JSONField(name = "typed_config")
+        private Map<String, Object> typedConfig;
 
         public String getUpstreamProtocolName() {
             return upstreamProtocolName;
@@ -94,20 +89,21 @@ public class RouteConfig {
             this.upstreamProtocolName = upstreamProtocolName;
         }
 
-        public Map<String, String> getHeaderRewriteMap() {
-            return headerRewriteMap;
+
+        public Map<String, Object> getTypedConfig() {
+            return typedConfig;
         }
 
-        public void setHeaderRewriteMap(Map<String, String> headerRewriteMap) {
-            this.headerRewriteMap = headerRewriteMap;
+        public void setTypedConfig(Map<String, Object> typedConfig) {
+            this.typedConfig = typedConfig;
         }
 
-        public String getLbType() {
-            return lbType;
+        public String getClusterName() {
+            return clusterName;
         }
 
-        public void setLbType(String lbType) {
-            this.lbType = lbType;
+        public void setClusterName(String clusterName) {
+            this.clusterName = clusterName;
         }
     }
 }

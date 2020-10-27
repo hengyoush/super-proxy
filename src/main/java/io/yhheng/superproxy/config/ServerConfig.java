@@ -1,12 +1,16 @@
 package io.yhheng.superproxy.config;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import java.util.List;
 
 public class ServerConfig {
+    @JSONField(name = "name")
     private String name;
+    @JSONField(name = "listeners")
     private List<ListenerConfig> listeners;
-
-// TODO log path support
+    @JSONField(name = "route_tables")
+    private List<RouteConfig> routeConfigs;
 
     public String getName() {
         return name;
@@ -22,5 +26,13 @@ public class ServerConfig {
 
     public void setListeners(List<ListenerConfig> listeners) {
         this.listeners = listeners;
+    }
+
+    public List<RouteConfig> getRouteConfigs() {
+        return routeConfigs;
+    }
+
+    public void setRouteConfigs(List<RouteConfig> routeConfigs) {
+        this.routeConfigs = routeConfigs;
     }
 }
