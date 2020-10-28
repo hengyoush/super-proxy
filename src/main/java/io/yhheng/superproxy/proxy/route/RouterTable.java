@@ -4,8 +4,14 @@ import io.yhheng.superproxy.protocol.Header;
 
 import java.util.List;
 
-public class Routers {
+public class RouterTable {
+    private String name;
     private List<Route> routes;
+
+    public RouterTable(String name, List<Route> routes) {
+        this.name = name;
+        this.routes = routes;
+    }
 
     public Route match(Header header) {
         for (Route route : routes) {

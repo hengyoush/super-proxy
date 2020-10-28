@@ -76,6 +76,27 @@
             }
           }
         }
+      ],
+      "announcers": [
+        {
+          "announce_entries": [
+            {
+              "type": "dubbo",
+              "provider_ref": "serverListener",
+              "typed_config": {
+                "interface_name": "com.demo.DemoService",
+              }
+            }
+          ],
+          "announce_destination": {
+            "type": "zookeeper",
+            "typed_config": {
+              "host": "127.0.0.1",
+              "port": 2181,
+              "path": "dubbo"
+            }
+          }
+        }
       ]
     }
   ],

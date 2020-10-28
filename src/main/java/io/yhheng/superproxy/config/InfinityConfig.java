@@ -1,14 +1,23 @@
 package io.yhheng.superproxy.config;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import io.yhheng.superproxy.Infinity;
+import io.yhheng.superproxy.Server;
+import io.yhheng.superproxy.announce.Announcer;
+import io.yhheng.superproxy.cluster.ClusterManager;
+import io.yhheng.superproxy.common.utils.Validate;
 
 import java.util.List;
+
+import static java.util.stream.Collectors.toUnmodifiableList;
 
 public class InfinityConfig {
     @JSONField(name = "servers")
     private List<ServerConfig> serverConfigs;
     @JSONField(name = "cluster_manager")
-    private List<ClusterManagerConfig> clusterConfigs;
+    private ClusterManagerConfig clusterManagerConfig;
+    @JSONField(name = "announcers")
+    private List<AnnouncerConfig> announcerConfigs;
 
     public List<ServerConfig> getServerConfigs() {
         return serverConfigs;
@@ -18,11 +27,21 @@ public class InfinityConfig {
         this.serverConfigs = serverConfigs;
     }
 
-    public List<ClusterManagerConfig> getClusterConfigs() {
-        return clusterConfigs;
+    public ClusterManagerConfig getClusterManagerConfig() {
+        return clusterManagerConfig;
     }
 
-    public void setClusterConfigs(List<ClusterManagerConfig> clusterConfigs) {
-        this.clusterConfigs = clusterConfigs;
+    public void setClusterManagerConfig(ClusterManagerConfig clusterManagerConfig) {
+        this.clusterManagerConfig = clusterManagerConfig;
+    }
+
+    public Infinity make() {
+        Validate.assertNotEmpty(serverConfigs, "ServerConfig");
+        Validate.assertNotNull(clusterManagerConfig, "clusterManagerConfig");
+
+        List<Server> servers = serverConfigs.stream().map(ServerConfig::make).collect(toUnmodifiableList());
+        ClusterManager clusterManager = clusterManagerConfig.make();
+        List<Announcer> announcers = announcerConfigs.stream().map(AnnouncerConfig::make).collect(toUnmodifiableList());
+        return new Infinity(servers, clusterManager, announcers);
     }
 }

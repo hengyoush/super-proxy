@@ -1,6 +1,5 @@
 package io.yhheng.superproxy.proxy.route;
 
-import io.yhheng.superproxy.cluster.Cluster;
 import io.yhheng.superproxy.protocol.Header;
 import io.yhheng.superproxy.protocol.Protocol;
 import io.yhheng.superproxy.proxy.loadbalance.LoadBalance;

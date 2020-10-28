@@ -1,8 +1,13 @@
 package io.yhheng.superproxy.config;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import io.yhheng.superproxy.Server;
+import io.yhheng.superproxy.network.ListenerFactory;
+import io.yhheng.superproxy.proxy.route.RouterTable;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ServerConfig {
     @JSONField(name = "name")
@@ -34,5 +39,18 @@ public class ServerConfig {
 
     public void setRouteConfigs(List<RouteConfig> routeConfigs) {
         this.routeConfigs = routeConfigs;
+    }
+
+    Server make() {
+        // 初始化Listener
+        List<ListenerConfig> listenerConfigs = this.getListeners();
+        var listeners = listenerConfigs.stream().map(ListenerFactory::createListener).collect(Collectors.toCollection(ArrayList::new));
+        List<RouterTable> routerTables = routeConfigs.stream().map(RouteConfig::make).collect(Collectors.toList());
+
+        Server server = new Server();
+        server.setListeners(listeners);
+        server.setName(name);
+        server.setRouterTables(routerTables);
+        return server;
     }
 }

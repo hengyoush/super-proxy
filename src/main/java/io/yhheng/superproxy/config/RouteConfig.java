@@ -1,9 +1,14 @@
 package io.yhheng.superproxy.config;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import io.yhheng.superproxy.common.utils.Validate;
+import io.yhheng.superproxy.proxy.route.Route;
+import io.yhheng.superproxy.proxy.route.RouteFactories;
+import io.yhheng.superproxy.proxy.route.RouterTable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class RouteConfig {
     @JSONField(name = "router_table_name")
@@ -27,7 +32,14 @@ public class RouteConfig {
         this.routeEntries = routeEntries;
     }
 
-    private static class RouteEntry {
+    public RouterTable make() {
+        Validate.assertNotEmpty(name, "RouteName");
+        Validate.assertNotEmpty(routeEntries, "routeEntries");
+        List<Route> routes = routeEntries.stream().map(RouteEntry::make).collect(Collectors.toList());
+        return new RouterTable(name, routes);
+    }
+
+    public static class RouteEntry {
         @JSONField(name = "type")
         private String type;
         @JSONField(name = "match")
@@ -58,9 +70,15 @@ public class RouteConfig {
         public void setType(String type) {
             this.type = type;
         }
+
+        public Route make() {
+            Validate.assertNotEmpty(type, "RouteEntryType");
+            Route.Factory routeFactory = RouteFactories.INSTANCE.get(type);
+            return routeFactory.create(this);
+        }
     }
 
-    private static class RouteMatchConfig {
+    public static class RouteMatchConfig {
         @JSONField(name = "typed_config")
         private Map<String, Object> typedConfig;
 
@@ -73,7 +91,7 @@ public class RouteConfig {
         }
     }
 
-    private static class RouteActionConfig {
+    public static class RouteActionConfig {
         @JSONField(name = "cluster_name")
         private String clusterName;
         @JSONField(name = "upstream_protocol")

@@ -1,5 +1,6 @@
 package io.yhheng.superproxy.proxy.route;
 
+import io.yhheng.superproxy.config.RouteConfig.RouteEntry;
 import io.yhheng.superproxy.protocol.Header;
 
 public interface Route {
@@ -7,4 +8,8 @@ public interface Route {
 
     RouteMatch routerMatch();
     RouteAction routerAction();
+
+    interface Factory {
+        Route create(RouteEntry routeEntry);
+    }
 }

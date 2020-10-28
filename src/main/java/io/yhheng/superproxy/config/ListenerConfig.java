@@ -76,4 +76,28 @@ public class ListenerConfig {
     public void setConnectionEventListenerConfigs(List<ConnectionEventListenerConfig> connectionEventListenerConfigs) {
         this.connectionEventListenerConfigs = connectionEventListenerConfigs;
     }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 }

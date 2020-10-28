@@ -6,7 +6,7 @@ import io.yhheng.superproxy.proxy.filter.ProxyFilter;
 import io.yhheng.superproxy.proxy.filter.ProxyFilters;
 import io.yhheng.superproxy.proxy.retry.RetryState;
 import io.yhheng.superproxy.proxy.route.Route;
-import io.yhheng.superproxy.proxy.route.Routers;
+import io.yhheng.superproxy.proxy.route.RouterTable;
 import io.yhheng.superproxy.stream.ClientStream;
 import io.yhheng.superproxy.stream.ServerStream;
 import io.yhheng.superproxy.stream.StreamResetReason;
@@ -22,14 +22,14 @@ import static io.yhheng.superproxy.proxy.ProxyPhase.UpstreamResponse;
 import static io.yhheng.superproxy.proxy.ProxyPhase.WaitResponse;
 
 public class Proxy {
-    private Routers routers;
+    private RouterTable routerTable;
     private ClusterManager clusterManager;
     private ProxyFilters proxyFilters;
 
-    public Proxy(Routers routers,
+    public Proxy(RouterTable routerTable,
                  ClusterManager clusterManager,
                  ProxyFilters proxyFilters) {
-        this.routers = routers;
+        this.routerTable = routerTable;
         this.clusterManager = clusterManager;
         this.proxyFilters = proxyFilters;
     }
@@ -164,7 +164,7 @@ public class Proxy {
     }
 
     private void matchRoute(ServerStream serverStream) {
-        Route route = routers.match(serverStream.getFrame().getHeader());
+        Route route = routerTable.match(serverStream.getFrame().getHeader());
         if (route == null) {
             // TODO no upstream cluster found, end the stream
         }

@@ -12,6 +12,7 @@ import io.yhheng.superproxy.proxy.ProxyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,7 +57,7 @@ public class ListenerFactory {
         Proxy proxy = ProxyFactory.createProxy(listenerConfig.getProxyConfig(), ClusterManager.getInstance());
 
         return new NettyListenerImpl(listenerConfig.getName(),
-                listenerConfig.getAddress(),
+                new InetSocketAddress(listenerConfig.getAddress(), listenerConfig.getPort()),
                 networkFilters,
                 listenerEventListeners,
                 connectionEventListeners,
