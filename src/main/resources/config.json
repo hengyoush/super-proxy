@@ -16,10 +16,11 @@
                 }
               },
               "route_action": {
-                "cluster_names": ["serverCluster"],
+                "cluster_name": "serverCluster",
                 "upstream_protocol": "http",
                 "typed_config": {
-                  "rewrite_group": "prod"
+                  "rewrite_group": "prod",
+                  "rewrite_version": "0.1.9"
                 }
               }
             }
@@ -84,7 +85,7 @@
               "type": "dubbo",
               "provider_ref": "serverListener",
               "typed_config": {
-                "interface_name": "com.demo.DemoService",
+                "interface_name": "com.demo.DemoService"
               }
             }
           ],

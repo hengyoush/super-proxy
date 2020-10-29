@@ -15,7 +15,7 @@ public class ServerStream extends Stream implements StreamReceiveListener {
     private Long id;
     private final Connection serverConnection;
     private final Proxy proxy;
-    private final StreamConnection streamConnection;
+    private final ServerStreamConnection serverStreamConnection;
 
     private boolean twoway;
 
@@ -32,14 +32,14 @@ public class ServerStream extends Stream implements StreamReceiveListener {
 
     private AtomicReference<StreamResetReason> resetReason = new AtomicReference<>(null);
 
-    public ServerStream(Connection serverConnection, Proxy proxy, StreamConnection streamConnection) {
-        this(serverConnection, proxy, streamConnection, true);
+    public ServerStream(Connection serverConnection, Proxy proxy, ServerStreamConnection serverStreamConnection) {
+        this(serverConnection, proxy, serverStreamConnection, true);
     }
 
-    public ServerStream(Connection serverConnection, Proxy proxy, StreamConnection streamConnection, boolean twoway) {
+    public ServerStream(Connection serverConnection, Proxy proxy, ServerStreamConnection serverStreamConnection, boolean twoway) {
         this.serverConnection = serverConnection;
         this.proxy = proxy;
-        this.streamConnection = streamConnection;
+        this.serverStreamConnection = serverStreamConnection;
         this.twoway = twoway;
     }
 
@@ -70,7 +70,7 @@ public class ServerStream extends Stream implements StreamReceiveListener {
 
     public void cleanStream() {
         if (isTwoway()) {
-            streamConnection.activeStreamManager().removeStream(getId());
+            serverStreamConnection.activeStreamManager().removeStream(getId());
         }
     }
 
@@ -91,9 +91,6 @@ public class ServerStream extends Stream implements StreamReceiveListener {
     }
 
     public void setClientStream(ClientStream clientStream) {
-        if (twoway) {
-            streamConnection.activeStreamManager().addClientStream(clientStream);
-        }
         this.clientStream = clientStream;
     }
 

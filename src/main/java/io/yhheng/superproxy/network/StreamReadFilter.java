@@ -3,7 +3,6 @@ package io.yhheng.superproxy.network;
 import io.netty.buffer.ByteBuf;
 import io.yhheng.superproxy.protocol.DecodeResult;
 import io.yhheng.superproxy.stream.ServerStreamConnection;
-import io.yhheng.superproxy.stream.StreamConnection;
 
 public enum StreamReadFilter implements NetworkReadFilter, ConnectionEventListener {
     INSTANCE;
@@ -11,9 +10,9 @@ public enum StreamReadFilter implements NetworkReadFilter, ConnectionEventListen
 
     @Override
     public FilterStatus onRead(DecodeResult decodeResult, Connection connection) {
-        StreamConnection streamConnection = connection.streamConnection();
+        ServerStreamConnection serverStreamConnection = connection.streamConnection();
         // request or response
-        streamConnection.dispatch(decodeResult);
+        serverStreamConnection.dispatch(decodeResult);
         return FilterStatus.STOP;
     }
 
@@ -32,15 +31,15 @@ public enum StreamReadFilter implements NetworkReadFilter, ConnectionEventListen
         if (event == ConnectionEvent.Connected) {
             Listener listener = connection.listener();
             // 创建streamConnection,绑定到Connection上
-            var serverStreamConnection = new ServerStreamConnection(listener.downstreamProtocol(),
-                    connection,
-                    listener.proxy());
-            connection.setStreamConnection(serverStreamConnection);
+//            var streamConnection = new DuplexStreamConnectionImpl(listener.downstreamProtocol(),
+//                    connection,
+//                    listener.proxy());
+            connection.newStreamConnection(listener.downstreamProtocol());
         } else if (event == ConnectionEvent.RemoteClose || event == ConnectionEvent.LocalClose) {
             // 清除streamConnection
-            StreamConnection streamConnection = connection.streamConnection();
-            if (streamConnection != null) {
-                streamConnection.close(event == ConnectionEvent.RemoteClose);
+            ServerStreamConnection serverStreamConnection = connection.streamConnection();
+            if (serverStreamConnection != null) {
+                serverStreamConnection.close(event == ConnectionEvent.RemoteClose);
             }
         }
     }

@@ -1,8 +1,9 @@
 package io.yhheng.superproxy.network;
 
 import io.netty.buffer.ByteBuf;
-import io.yhheng.superproxy.proxy.Proxy;
-import io.yhheng.superproxy.stream.StreamConnection;
+import io.yhheng.superproxy.common.utils.Side;
+import io.yhheng.superproxy.protocol.Protocol;
+import io.yhheng.superproxy.stream.ServerStreamConnection;
 
 import java.net.InetAddress;
 
@@ -15,11 +16,11 @@ public interface Connection {
     InetAddress localAddr();
     void close();
     void write(ByteBuf byteBuf);
+    Side side();
 
     // reference to Listener
     Listener listener();
-    StreamConnection streamConnection();
+    ServerStreamConnection streamConnection();
 
-    // setters
-    void setStreamConnection(StreamConnection streamConnection);
+    ServerStreamConnection newStreamConnection(Protocol protocol);
 }

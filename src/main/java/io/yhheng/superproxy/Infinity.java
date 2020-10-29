@@ -21,4 +21,14 @@ public class Infinity {
         this.clusterManager = clusterManager;
         this.announcers = announcers;
     }
+
+    public void startup() {
+        servers.forEach(Server::startup);
+        announcers.forEach(Announcer::announceAll);
+    }
+
+    public void shutdown() {
+        servers.forEach(Server::shutdown);
+        announcers.forEach(Announcer::unAnnounce);
+    }
 }

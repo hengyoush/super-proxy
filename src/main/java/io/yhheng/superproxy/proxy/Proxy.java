@@ -1,6 +1,9 @@
 package io.yhheng.superproxy.proxy;
 
 import io.yhheng.superproxy.cluster.ClusterManager;
+import io.yhheng.superproxy.cluster.Host;
+import io.yhheng.superproxy.network.ClientConnection;
+import io.yhheng.superproxy.network.ConnectionPool;
 import io.yhheng.superproxy.protocol.Frame;
 import io.yhheng.superproxy.proxy.filter.ProxyFilter;
 import io.yhheng.superproxy.proxy.filter.ProxyFilters;
@@ -8,6 +11,7 @@ import io.yhheng.superproxy.proxy.retry.RetryState;
 import io.yhheng.superproxy.proxy.route.Route;
 import io.yhheng.superproxy.proxy.route.RouterTable;
 import io.yhheng.superproxy.stream.ClientStream;
+import io.yhheng.superproxy.stream.ClientStreamConnection;
 import io.yhheng.superproxy.stream.ServerStream;
 import io.yhheng.superproxy.stream.StreamResetReason;
 import io.yhheng.superproxy.stream.StreamSenderImpl;
@@ -191,14 +195,18 @@ public class Proxy {
     }
 
     private void createClientStream(ServerStream serverStream) {
+        Host host = serverStream.getUpstreamHost();
+        ConnectionPool connPool = host.getConnPool();
+        ClientConnection connection = connPool.getConnection(serverStream.getFrame().getHeader());
+        ClientStreamConnection clientStreamConnection = connection.streamConnection();
+        ClientStream newStream = clientStreamConnection.newStream(serverStream.getFrame());
         var upstreamRequest = new UpstreamRequest();
         upstreamRequest.setFrame(serverStream.getFrame());
         upstreamRequest.setHost(serverStream.getUpstreamHost());
-        var clientStream = new ClientStream();
-        clientStream.setStreamSender(new StreamSenderImpl());
-        clientStream.setUpstreamRequest(upstreamRequest);
-        clientStream.setServerStream(serverStream);
-        serverStream.setClientStream(clientStream);
+        newStream.setStreamSender(new StreamSenderImpl());
+        newStream.setUpstreamRequest(upstreamRequest);
+        newStream.setServerStream(serverStream);
+        serverStream.setClientStream(newStream);
     }
 
     private void sendRequest(ServerStream serverStream) {

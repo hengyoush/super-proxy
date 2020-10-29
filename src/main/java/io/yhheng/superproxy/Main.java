@@ -8,5 +8,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         String path = args[0];
         Infinity infinity = Infinity.parse(Files.readString(Paths.get(path)));
+
+        infinity.startup();
     }
 }

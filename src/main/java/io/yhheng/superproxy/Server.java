@@ -15,9 +15,16 @@ public class Server {
     public Server() {
     }
 
+    public void startup() {
+        listeners.forEach(Listener::listen);
+    }
+
+    public void shutdown() {
+        listeners.forEach(Listener::shutdown);
+    }
+
     public ClusterManager getClusterManager() {
         return clusterManager;
-
     }
 
     public void setName(String name) {
