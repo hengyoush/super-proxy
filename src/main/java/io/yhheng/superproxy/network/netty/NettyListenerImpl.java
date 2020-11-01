@@ -79,6 +79,7 @@ public class NettyListenerImpl implements Listener {
         serverBootstrap.childHandler(channelInitializer);
         serverBootstrap.bind(bindAddr).addListener(future -> {
             if (future.isSuccess()) {
+                log.info("listener {} 启动成功", name);
                 listenerEventListeners.forEach(i -> i.onListenerStarted(NettyListenerImpl.this));
             } else {
                 log.error("启动listener:{}失败,绑定地址:{}", name, bindAddr, future.cause());

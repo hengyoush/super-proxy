@@ -16,6 +16,9 @@ import io.yhheng.superproxy.stream.ServerStream;
 import io.yhheng.superproxy.stream.StreamResetReason;
 import io.yhheng.superproxy.stream.StreamSenderImpl;
 import io.yhheng.superproxy.stream.UpstreamRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.List;
 import java.util.Objects;
@@ -26,6 +29,7 @@ import static io.yhheng.superproxy.proxy.ProxyPhase.UpstreamResponse;
 import static io.yhheng.superproxy.proxy.ProxyPhase.WaitResponse;
 
 public class Proxy {
+    private static final Logger log = LoggerFactory.getLogger(Proxy.class);
     private RouterTable routerTable;
     private ClusterManager clusterManager;
     private ProxyFilters proxyFilters;
@@ -39,13 +43,18 @@ public class Proxy {
     }
 
     public void proxy(ServerStream serverStream) {
-        proxy(serverStream, ProxyPhase.Init);
+        log.debug("[] 开始进行ServerStream的代理,id:{},phase:init", serverStream.getId());
+        ProxyPhase endPhase = proxy(serverStream, ProxyPhase.Init);
+        log.debug("[] ServerStream的代理结束,id:{},phase:{}", serverStream.getId(), endPhase.name());
     }
 
     private ProxyPhase proxy(ServerStream ss, ProxyPhase proxyPhase) {
         for (int i = 0; i < ProxyPhase.End.ordinal() - ProxyPhase.Init.ordinal(); i++) {
             switch (Objects.requireNonNull(proxyPhase)) {
-                case Init: proxyPhase = proxyPhase.next(); break;
+                case Init: {
+                    MDC.put("serverStreamId", ss.getId().toString());
+                    proxyPhase = proxyPhase.next(); break;
+                }
                 case PreRoute: {
                     runFilters(ss.getFrame(), proxyPhase);
 
@@ -157,6 +166,7 @@ public class Proxy {
     }
 
     private void runFilters(Frame frame, ProxyPhase phase) {
+        log.debug("[Proxy runFilters {}] 开始进行proxy_filter处理", phase.name());
         List<ProxyFilter> filters = proxyFilters.getFilters(phase);
         for (int i = 0; i < filters.size(); i++) {
             ProxyFilter proxyFilter = filters.get(i);
@@ -165,9 +175,11 @@ public class Proxy {
                 break;
             }
         }
+        log.debug("[Proxy runFilters {}] 结束进行proxy_filter处理", phase.name());
     }
 
     private void matchRoute(ServerStream serverStream) {
+        log.debug("[Proxy matchRoute] 开始进行路由处理");
         Route route = routerTable.match(serverStream.getFrame().getHeader());
         if (route == null) {
             // TODO no upstream cluster found, end the stream
@@ -176,15 +188,20 @@ public class Proxy {
         String clusterName = route.routerAction().getClusterName();
         serverStream.setUpstreamCluster(clusterManager.getCluster(clusterName));
         serverStream.setRoute(route);
+        if (log.isDebugEnabled()) {
+            log.debug("[Proxy matchRoute] 结束进行路由处理,router:{}", serverStream.getRoute());
+        }
     }
 
     private void chooseHost(ServerStream serverStream) {
+        log.debug("[Proxy chooseHost] 开始进行上游集群LoadBalance处理");
         if (serverStream.getUpstreamCluster() == null) {
             serverStream.sendHijackReply("no route find");
             return;
         }
         var upstreamHost = serverStream.getUpstreamCluster().selectHost();
         serverStream.setUpstreamHost(upstreamHost);
+        log.debug("[Proxy chooseHost] 结束进行上游集群LoadBalance处理, host:{}", serverStream.getUpstreamHost());
     }
 
     private void retry(ServerStream serverStream) {
@@ -195,6 +212,7 @@ public class Proxy {
     }
 
     private void createClientStream(ServerStream serverStream) {
+        log.debug("[Proxy sendUpstreamRequest] 开始创建ClientStream");
         Host host = serverStream.getUpstreamHost();
         ConnectionPool connPool = host.getConnPool();
         ClientConnection connection = connPool.getConnection(serverStream.getFrame().getHeader());
@@ -207,10 +225,13 @@ public class Proxy {
         newStream.setUpstreamRequest(upstreamRequest);
         newStream.setServerStream(serverStream);
         serverStream.setClientStream(newStream);
+        log.debug("[Proxy sendUpstreamRequest] 结束创建ClientStream：{}", serverStream.getClientStream());
     }
 
     private void sendRequest(ServerStream serverStream) {
+        log.debug("[Proxy sendUpstreamRequest] 开始发送上游请求, request:{}", serverStream.getClientStream().getUpstreamRequest());
         serverStream.getClientStream().appendRequest(true);
+        log.debug("[Proxy sendUpstreamRequest] 结束发送上游请求");
     }
 
     private ProxyPhase processError(ServerStream serverStream) {

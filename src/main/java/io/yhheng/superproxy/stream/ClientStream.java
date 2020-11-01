@@ -78,4 +78,8 @@ public class ClientStream extends Stream implements StreamReceiveListener {
     public void setRetryState(RetryState retryState) {
         this.retryState = retryState;
     }
+
+    public UpstreamRequest getUpstreamRequest() {
+        return upstreamRequest;
+    }
 }

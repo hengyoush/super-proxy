@@ -9,8 +9,12 @@ import io.yhheng.superproxy.protocol.Header;
 import io.yhheng.superproxy.protocol.HeartbeatSupport;
 import io.yhheng.superproxy.protocol.Protocol;
 import io.yhheng.superproxy.proxy.Proxy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DuplexStreamConnectionImpl implements ClientStreamConnection {
+    private static final Logger log = LoggerFactory.getLogger(DuplexStreamConnectionImpl.class);
+
     private final Protocol protocol;
     private final Connection connection;
     private final Proxy proxy;
@@ -31,6 +35,7 @@ public class DuplexStreamConnectionImpl implements ClientStreamConnection {
         if (frame.isHeartBeat() && Protocol.supportHeartBeat(protocol)) {
             ByteBuf byteBuf = ((HeartbeatSupport) protocol).generateHeartBeatResponse(frame);
             connection.write(byteBuf);
+            log.debug("[DuplexStreamConnectionImpl] 处理心跳请求完成, 已发送心跳响应");
             return;
         }
 
@@ -81,6 +86,7 @@ public class DuplexStreamConnectionImpl implements ClientStreamConnection {
         // 创建ServerStream
         ServerStream serverStream = new ServerStream(connection, proxy, this);
         activeStreamManager.addServerStream(serverStream);
+        log.debug("[DuplexStreamConnectionImpl] 开始处理请求，创建ServerStream id:{}",serverStream.getId());
         serverStream.onReceive(frame);
     }
 
@@ -88,6 +94,7 @@ public class DuplexStreamConnectionImpl implements ClientStreamConnection {
         Frame frame = decodeResult.getFrame();
         // 创建ServerStream
         ServerStream serverStream = new ServerStream(connection, proxy, this, false);
+        log.debug("[DuplexStreamConnectionImpl] 开始处理OneWay请求，创建ServerStream id:{}",serverStream.getId());
         serverStream.onReceive(frame);
     }
 
@@ -95,6 +102,7 @@ public class DuplexStreamConnectionImpl implements ClientStreamConnection {
         Frame frame = decodeResult.getFrame();
         Header header = frame.getHeader();
         ClientStream clientStream = activeStreamManager.findMatchClientStream(header.getRequestId());
+        log.debug("[DuplexStreamConnectionImpl] 开始处理响应，匹配ClientStream id:{}",clientStream.getId());
         clientStream.onReceive(frame);
     }
 
@@ -102,6 +110,7 @@ public class DuplexStreamConnectionImpl implements ClientStreamConnection {
     public ClientStream newStream(Frame frame) {
         ClientStream clientStream = new ClientStream();
         activeStreamManager.addClientStream(clientStream);
+        log.debug("[] 创建新的ClientStream，id：{}", clientStream);
         return clientStream;
     }
 }
