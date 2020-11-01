@@ -42,9 +42,9 @@ public class RouteConfig {
     public static class RouteEntry {
         @JSONField(name = "type")
         private String type;
-        @JSONField(name = "match")
+        @JSONField(name = "route_match")
         private RouteMatchConfig routeMatchConfig;
-        @JSONField(name = "action")
+        @JSONField(name = "route_action")
         private RouteActionConfig routeActionConfig;
 
         public RouteMatchConfig getRouteMatchConfig() {
@@ -95,17 +95,9 @@ public class RouteConfig {
         @JSONField(name = "cluster_name")
         private String clusterName;
         @JSONField(name = "upstream_protocol")
-        private String upstreamProtocolName;
+        private ProtocolConfig upstreamProtocol;
         @JSONField(name = "typed_config")
         private Map<String, Object> typedConfig;
-
-        public String getUpstreamProtocolName() {
-            return upstreamProtocolName;
-        }
-
-        public void setUpstreamProtocolName(String upstreamProtocolName) {
-            this.upstreamProtocolName = upstreamProtocolName;
-        }
 
 
         public Map<String, Object> getTypedConfig() {
@@ -122,6 +114,14 @@ public class RouteConfig {
 
         public void setClusterName(String clusterName) {
             this.clusterName = clusterName;
+        }
+
+        public ProtocolConfig getUpstreamProtocol() {
+            return upstreamProtocol;
+        }
+
+        public void setUpstreamProtocol(ProtocolConfig upstreamProtocol) {
+            this.upstreamProtocol = upstreamProtocol;
         }
     }
 }

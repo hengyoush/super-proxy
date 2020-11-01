@@ -8,8 +8,7 @@ import io.yhheng.superproxy.cluster.ClusterManager;
 import io.yhheng.superproxy.common.utils.Validate;
 
 import java.util.List;
-
-import static java.util.stream.Collectors.toUnmodifiableList;
+import java.util.stream.Collectors;
 
 public class InfinityConfig {
     @JSONField(name = "servers")
@@ -39,9 +38,9 @@ public class InfinityConfig {
         Validate.assertNotEmpty(serverConfigs, "ServerConfig");
         Validate.assertNotNull(clusterManagerConfig, "clusterManagerConfig");
 
-        List<Server> servers = serverConfigs.stream().map(ServerConfig::make).collect(toUnmodifiableList());
+        List<Server> servers = serverConfigs.stream().map(ServerConfig::make).collect(Collectors.toList());
         ClusterManager clusterManager = clusterManagerConfig.make();
-        List<Announcer> announcers = announcerConfigs.stream().map(AnnouncerConfig::make).collect(toUnmodifiableList());
+        List<Announcer> announcers = announcerConfigs.stream().map(AnnouncerConfig::make).collect(Collectors.toList());
         return new Infinity(servers, clusterManager, announcers);
     }
 }

@@ -1,17 +1,19 @@
 package io.yhheng.superproxy.protocol.dubbo;
 
 import io.netty.buffer.ByteBuf;
+import io.yhheng.superproxy.config.ProtocolConfig;
 import io.yhheng.superproxy.protocol.Decoder;
 import io.yhheng.superproxy.protocol.Encoder;
 import io.yhheng.superproxy.protocol.Frame;
 import io.yhheng.superproxy.protocol.Header;
 import io.yhheng.superproxy.protocol.HeartbeatSupport;
 import io.yhheng.superproxy.protocol.LengthFieldSupportProtocol;
-import io.yhheng.superproxy.protocol.Protocols;
+import io.yhheng.superproxy.protocol.Protocol;
+
+import java.util.function.Function;
 
 public class DubboProtocol implements LengthFieldSupportProtocol, HeartbeatSupport {
-    public DubboProtocol() {
-        Protocols.INSTANCE.register("dubbo", this);
+    public DubboProtocol(ProtocolConfig protocolConfig) {
     }
 
     @Override
@@ -58,5 +60,9 @@ public class DubboProtocol implements LengthFieldSupportProtocol, HeartbeatSuppo
             // TODO log warn here
             return null;
         }
+    }
+
+    public static Function<ProtocolConfig, Protocol> factory() {
+        return DubboProtocol::new;
     }
 }

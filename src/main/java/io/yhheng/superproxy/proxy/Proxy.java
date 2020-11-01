@@ -199,7 +199,7 @@ public class Proxy {
             serverStream.sendHijackReply("no route find");
             return;
         }
-        var upstreamHost = serverStream.getUpstreamCluster().selectHost();
+        Host upstreamHost = serverStream.getUpstreamCluster().selectHost();
         serverStream.setUpstreamHost(upstreamHost);
         log.debug("[Proxy chooseHost] 结束进行上游集群LoadBalance处理, host:{}", serverStream.getUpstreamHost());
     }
@@ -218,7 +218,7 @@ public class Proxy {
         ClientConnection connection = connPool.getConnection(serverStream.getFrame().getHeader());
         ClientStreamConnection clientStreamConnection = connection.streamConnection();
         ClientStream newStream = clientStreamConnection.newStream(serverStream.getFrame());
-        var upstreamRequest = new UpstreamRequest();
+        UpstreamRequest upstreamRequest = new UpstreamRequest();
         upstreamRequest.setFrame(serverStream.getFrame());
         upstreamRequest.setHost(serverStream.getUpstreamHost());
         newStream.setStreamSender(new StreamSenderImpl());

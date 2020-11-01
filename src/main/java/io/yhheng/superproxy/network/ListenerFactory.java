@@ -20,21 +20,22 @@ public class ListenerFactory {
     private static final Logger log = LoggerFactory.getLogger(ListenerFactory.class);
 
     public static Listener createListener(ListenerConfig listenerConfig) {
-        var listenerEventListenerConfigs = listenerConfig.getListenerEventListenerConfigs();
 
-        var listenerEventListeners = new ArrayList<ListenerEventListener>();
+        List<ListenerEventListenerConfig> listenerEventListenerConfigs = listenerConfig.getListenerEventListenerConfigs();
+
+        List<ListenerEventListener> listenerEventListeners = new ArrayList<>();
         for (ListenerEventListenerConfig config : listenerEventListenerConfigs) {
-            var l = ListenerEventListeners.INSTANCE.get(config.getType());
+            ListenerEventListener l = ListenerEventListeners.INSTANCE.get(config.getType());
             if (l == null) {
-                log.warn("type :{}的listenerEventListener不存在!", config.getType());
+                log.warn("type :{} 的listenerEventListener不存在!", config.getType());
             } else {
                 listenerEventListeners.add(l);
             }
         }
 
         List<NetworkReadFilterConfig> networkReadFilterConfigs = listenerConfig.getNetworkReadFilterConfigs();
-        var networkFilters = new ArrayList<NetworkReadFilter>();
-        for (var config : networkReadFilterConfigs) {
+        List<NetworkReadFilter> networkFilters = new ArrayList<>();
+        for (NetworkReadFilterConfig config : networkReadFilterConfigs) {
             NetworkReadFilter f = NetworkReadFilters.INSTANCE.get(config.getType());
             if (f == null) {
                 log.warn("type :{}的networkFilter不存在!", config.getType());
@@ -44,8 +45,8 @@ public class ListenerFactory {
         }
 
         List<ConnectionEventListenerConfig> connectionEventListenerConfigs = listenerConfig.getConnectionEventListenerConfigs();
-        var connectionEventListeners = new ArrayList<ConnectionEventListener>();
-        for (var config : connectionEventListenerConfigs) {
+        List<ConnectionEventListener> connectionEventListeners = new ArrayList<>();
+        for (ConnectionEventListenerConfig config : connectionEventListenerConfigs) {
             ConnectionEventListener l = ConnectionEventListeners.INSTANCE.get(config.getType());
             if (l == null) {
                 log.warn("type :{}的ConnectionEventListenerConfig不存在!", config.getType());
@@ -61,7 +62,7 @@ public class ListenerFactory {
                 networkFilters,
                 listenerEventListeners,
                 connectionEventListeners,
-                Protocols.INSTANCE.get(listenerConfig.getDownstreamProtocolName()),
+                Protocols.INSTANCE.newProtocol(listenerConfig.getDownstreamProtocol()),
                 proxy);
     }
 }

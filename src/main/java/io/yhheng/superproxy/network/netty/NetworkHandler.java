@@ -70,7 +70,7 @@ public class NetworkHandler extends ChannelDuplexHandler {
         List<ConnectionEventListener> connectionEventListeners = listener.connectionEventListeners();
         connTable.put(connection.id(), connection);
 
-        for (var l : connectionEventListeners) {
+        for (ConnectionEventListener l : connectionEventListeners) {
             l.onEvent(Connected, connection);
         }
 
@@ -84,7 +84,7 @@ public class NetworkHandler extends ChannelDuplexHandler {
 
     private void handleCloseConnection(Connection connection) {
         List<ConnectionEventListener> connectionEventListeners = listener.connectionEventListeners();
-        for (var l : connectionEventListeners) {
+        for (ConnectionEventListener l : connectionEventListeners) {
             l.onEvent(RemoteClose, connection);
         }
     }

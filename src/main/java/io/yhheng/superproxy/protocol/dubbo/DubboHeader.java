@@ -68,6 +68,11 @@ public class DubboHeader implements Header {
         return requestId;
     }
 
+    @Override
+    public boolean isModified() {
+        return false;
+    }
+
     public void setRequestId(long requestId) {
         this.requestId = requestId;
     }

@@ -60,7 +60,7 @@ public class NettyListenerImpl implements Listener {
                 .childOption(ChannelOption.SO_KEEPALIVE, true);
         ChannelInitializer<SocketChannel> channelInitializer;
         if (protocol instanceof LengthFieldSupport) {
-            channelInitializer = new ChannelInitializer<>() {
+            channelInitializer = new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel ch) {
                     ch.pipeline().addLast(new LengthFieldSupportProtocolHandler((LengthFieldSupportProtocol) protocol));
@@ -68,7 +68,7 @@ public class NettyListenerImpl implements Listener {
                 }
             };
         } else {
-            channelInitializer = new ChannelInitializer<>() {
+            channelInitializer = new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel ch) {
                     ch.pipeline().addLast(new NormalDecodeHandler(protocol));

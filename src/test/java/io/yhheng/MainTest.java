@@ -10,8 +10,8 @@ import java.nio.file.Paths;
 public class MainTest {
     @Test
     public void testMain() throws IOException {
-        Infinity infinity = Infinity.parse(Files.readString(Paths.get("./config.json")));
+//        Infinity infinity = Infinity.parse(Files.readString(Paths.get("./config.json")));
 
-        infinity.startup();
+//        infinity.startup();
     }
 }

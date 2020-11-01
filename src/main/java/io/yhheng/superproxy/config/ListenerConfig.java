@@ -24,7 +24,6 @@ public class ListenerConfig {
     private ProtocolConfig downstreamProtocol;
     @JSONField(name = "proxy_config")
     private ProxyConfig proxyConfig;
-    private String downstreamProtocolName;
 
     // TODO ConnectionIdleTimeout
 
@@ -61,14 +60,6 @@ public class ListenerConfig {
         this.networkReadFilterConfigs = networkReadFilterConfigs;
     }
 
-    public String getDownstreamProtocolName() {
-        return downstreamProtocolName;
-    }
-
-    public void setDownstreamProtocolName(String downstreamProtocolName) {
-        this.downstreamProtocolName = downstreamProtocolName;
-    }
-
     public List<ConnectionEventListenerConfig> getConnectionEventListenerConfigs() {
         return connectionEventListenerConfigs;
     }
@@ -99,5 +90,13 @@ public class ListenerConfig {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public ProtocolConfig getDownstreamProtocol() {
+        return downstreamProtocol;
+    }
+
+    public void setDownstreamProtocol(ProtocolConfig downstreamProtocol) {
+        this.downstreamProtocol = downstreamProtocol;
     }
 }

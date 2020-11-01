@@ -1,6 +1,7 @@
 {
   "servers": [
     {
+      "name": "server0",
       "route_tables": [
         {
           "router_table_name": "server_router",
@@ -8,7 +9,7 @@
           "route_table_entries": [
             {
               "type": "io.infinity.dubbo",
-              "match": {
+              "route_match": {
                 "typed_config": {
                   "interfaceName": "com.demo.DemoService",
                   "group": "dev",
@@ -17,7 +18,9 @@
               },
               "route_action": {
                 "cluster_name": "serverCluster",
-                "upstream_protocol": "http",
+                "upstream_protocol": {
+                  "type": "dubbo"
+                },
                 "typed_config": {
                   "rewrite_group": "prod",
                   "rewrite_version": "0.1.9"

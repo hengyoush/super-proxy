@@ -1,6 +1,7 @@
 package io.yhheng.superproxy.protocol.dubbo;
 
 public class DubboProtocolConstants {
+    public static final String PROTOCOL_NAME = "dubbo";
     // header length.
     protected static final int HEADER_LENGTH = 16;
     // magic header.

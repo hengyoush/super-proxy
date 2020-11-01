@@ -94,7 +94,7 @@ public class DubboDecoder extends AbstractDecoder {
     }
 
     @Override
-    public Protocol protocol() {
-        return Protocols.INSTANCE.get("dubbo");
+    public Class<? extends Protocol> protocol() {
+        return DubboProtocol.class;
     }
 }

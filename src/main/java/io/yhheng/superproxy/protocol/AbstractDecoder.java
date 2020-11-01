@@ -6,8 +6,8 @@ import java.io.IOException;
 
 public abstract class AbstractDecoder implements Decoder {
     @Override
-    public DecodeResult decode(ByteBuf byteBuf) throws IOException {
-        if (protocol() instanceof LengthFieldSupport) {
+    public DecodeResult decode(ByteBuf byteBuf) {
+        if (protocol().isAssignableFrom(LengthFieldSupport.class)) {
             DecodeResult decodeResult = tryDecode(byteBuf); // 总是成功
             if (decodeResult.getDecodeStatus() == DecodeStatus.NEED_MORE_INPUT) {
                 throw new IllegalStateException("无效的解码");
@@ -44,5 +44,5 @@ public abstract class AbstractDecoder implements Decoder {
      */
     public abstract DecodeResult doDecode(ByteBuf byteBuf);
 
-    public abstract Protocol protocol();
+    public abstract Class<? extends Protocol> protocol();
 }

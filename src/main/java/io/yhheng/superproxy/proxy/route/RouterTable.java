@@ -11,6 +11,7 @@ public class RouterTable {
     public RouterTable(String name, List<Route> routes) {
         this.name = name;
         this.routes = routes;
+        RouteManager.INSTANCE.register(this.name, this);
     }
 
     public Route match(Header header) {
