@@ -12,6 +12,7 @@ import java.net.InetAddress;
  * 目前只表示下游连接
  */
 public interface Connection {
+    String id();
     InetAddress remoteAddr();
     InetAddress localAddr();
     void close();

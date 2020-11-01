@@ -61,6 +61,7 @@ public class NetworkHandler extends ChannelDuplexHandler {
     public void handleNewConnection(Connection connection) {
         List<NetworkReadFilter> networkReadFilters = listener.networkReadFilters();
         List<ConnectionEventListener> connectionEventListeners = listener.connectionEventListeners();
+        connTable.put(connection.id(), connection);
 
         for (var l : connectionEventListeners) {
             l.onEvent(Connected, connection);
