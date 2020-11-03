@@ -29,12 +29,12 @@ public class Infinity {
     public void startup() {
         log.info("Infinity开始启动");
         servers.forEach(Server::startup);
-        announcers.forEach(Announcer::announceAll);
+        announcers.forEach(Announcer::start);
         log.info("Infinity启动成功");
     }
 
     public void shutdown() {
         servers.forEach(Server::shutdown);
-        announcers.forEach(Announcer::unAnnounce);
+        announcers.forEach(Announcer::shutdown);
     }
 }

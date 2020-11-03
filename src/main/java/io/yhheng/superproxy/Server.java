@@ -19,9 +19,9 @@ public class Server {
     }
 
     public void startup() {
-        log.info("Server {} 正在启动...", name);
+        log.info("Server: {} 正在启动...", name);
         listeners.forEach(Listener::listen);
-        log.info("Server {} 启动成功", name);
+        log.info("Server: {} 启动成功.", name);
     }
 
     public void shutdown() {

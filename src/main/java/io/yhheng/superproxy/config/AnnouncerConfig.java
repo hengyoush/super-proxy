@@ -2,21 +2,24 @@ package io.yhheng.superproxy.config;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import io.yhheng.superproxy.announce.Announcer;
+import io.yhheng.superproxy.announce.Announcers;
 
 import java.util.List;
 import java.util.Map;
 
 public class AnnouncerConfig {
+    @JSONField(name = "type")
+    private String type;
     @JSONField(name = "announce_entries")
-    private List<AnnounceEntry> announceEntries;
+    private List<AnnounceEntryConfig> announceEntries;
     @JSONField(name = "announce_destination")
     private AnnounceDestinationConfig announceDestinationConfig;
 
-    public List<AnnounceEntry> getAnnounceEntries() {
+    public List<AnnounceEntryConfig> getAnnounceEntries() {
         return announceEntries;
     }
 
-    public void setAnnounceEntries(List<AnnounceEntry> announceEntries) {
+    public void setAnnounceEntries(List<AnnounceEntryConfig> announceEntries) {
         this.announceEntries = announceEntries;
     }
 
@@ -29,29 +32,20 @@ public class AnnouncerConfig {
     }
 
     public Announcer make() {
-        return null;
+        return Announcers.INSTANCE.get(type, announceDestinationConfig.getType()).apply(this);
     }
 
-    public static class AnnounceEntry {
-        private String type;
-        private String listenerRef;
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public static class AnnounceEntryConfig {
+        @JSONField(name = "typed_config")
         private Map<String, Object> typedConfig;
-
-        public String getType() {
-            return type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
-        }
-
-        public String getListenerRef() {
-            return listenerRef;
-        }
-
-        public void setListenerRef(String listenerRef) {
-            this.listenerRef = listenerRef;
-        }
 
         public Map<String, Object> getTypedConfig() {
             return typedConfig;
@@ -63,7 +57,9 @@ public class AnnouncerConfig {
     }
 
     public static class AnnounceDestinationConfig {
+        @JSONField(name = "type")
         private String type;
+        @JSONField(name = "typed_config")
         private Map<String, Object> typedConfig;
 
         public String getType() {

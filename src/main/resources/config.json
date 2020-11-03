@@ -83,12 +83,12 @@
       ],
       "announcers": [
         {
+          "type": "dubbo",
           "announce_entries": [
             {
-              "type": "dubbo",
-              "provider_ref": "serverListener",
               "typed_config": {
-                "interface_name": "com.demo.DemoService"
+                "interface_name": "com.demo.DemoService",
+                "listener_ref": "serverListener"
               }
             }
           ],

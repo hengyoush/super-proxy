@@ -1,10 +1,7 @@
 package io.yhheng.superproxy.announce;
 
-import io.yhheng.superproxy.config.AnnouncerConfig.AnnounceEntry;
-
-public interface Announcer {
-    AnnounceDestination destination();
-    void announce(AnnounceEntry entry);
-    void announceAll();
-    void unAnnounce();
+public interface Announcer<E extends AnnouncerEntry> {
+    void announce(E entry);
+    void start();
+    void shutdown();
 }

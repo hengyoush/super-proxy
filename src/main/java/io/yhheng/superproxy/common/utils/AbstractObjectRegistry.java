@@ -17,6 +17,13 @@ public abstract class AbstractObjectRegistry<T> {
         }
     }
 
+    public void unregister(String type) {
+        T removed = REGISTRY_TABLE.remove(type);
+        if (removed == null) {
+            log.warn("尝试移除不存在的type: {}的{}", type, desc());
+        }
+    }
+
     public T get(String type) {
         return REGISTRY_TABLE.get(type);
     }

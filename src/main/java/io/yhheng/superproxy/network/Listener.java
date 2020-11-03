@@ -4,6 +4,7 @@ import io.yhheng.superproxy.Server;
 import io.yhheng.superproxy.protocol.Protocol;
 import io.yhheng.superproxy.proxy.Proxy;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 
 public interface Listener {
@@ -15,4 +16,5 @@ public interface Listener {
     Protocol downstreamProtocol();
     Server server();
     Proxy proxy();
+    InetSocketAddress bindAddr();
 }

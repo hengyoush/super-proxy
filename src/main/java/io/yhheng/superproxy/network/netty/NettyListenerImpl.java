@@ -6,7 +6,9 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.yhheng.superproxy.Server;
+import io.yhheng.superproxy.network.ActiveListeners;
 import io.yhheng.superproxy.network.ConnectionEventListener;
 import io.yhheng.superproxy.network.Listener;
 import io.yhheng.superproxy.network.ListenerEventListener;
@@ -18,13 +20,13 @@ import io.yhheng.superproxy.proxy.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.util.List;
 
 public class NettyListenerImpl implements Listener {
     private static final Logger log = LoggerFactory.getLogger(NettyListenerImpl.class);
     private String name;
-    private SocketAddress bindAddr;
+    private InetSocketAddress bindAddr;
     private List<NetworkReadFilter> networkReadFilters;
     private List<ListenerEventListener> listenerEventListeners;
     private List<ConnectionEventListener> connectionEventListeners;
@@ -36,7 +38,7 @@ public class NettyListenerImpl implements Listener {
     private EventLoopGroup workerGroup;
 
     public NettyListenerImpl(String name,
-                             SocketAddress bindAddr,
+                             InetSocketAddress bindAddr,
                              List<NetworkReadFilter> networkReadFilters,
                              List<ListenerEventListener> listenerEventListeners,
                              List<ConnectionEventListener> connectionEventListeners,
@@ -49,6 +51,7 @@ public class NettyListenerImpl implements Listener {
         this.connectionEventListeners = connectionEventListeners;
         this.protocol = protocol;
         this.proxy = proxy;
+        ActiveListeners.INSTANCE.register(name, NettyListenerImpl.this);
     }
 
     public void listen() {
@@ -56,6 +59,7 @@ public class NettyListenerImpl implements Listener {
         this.bossGroup = new NioEventLoopGroup(1);
         this.workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
         serverBootstrap.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true);
         ChannelInitializer<SocketChannel> channelInitializer;
@@ -96,6 +100,7 @@ public class NettyListenerImpl implements Listener {
         if (bossGroup != null) {
             bossGroup.shutdownGracefully().syncUninterruptibly();
         }
+        ActiveListeners.INSTANCE.unregister(name);
     }
 
     @Override
@@ -126,6 +131,11 @@ public class NettyListenerImpl implements Listener {
     @Override
     public Proxy proxy() {
         return proxy;
+    }
+
+    @Override
+    public InetSocketAddress bindAddr() {
+        return bindAddr;
     }
 
     public List<NetworkReadFilter> getNetworkReadFilters() {
